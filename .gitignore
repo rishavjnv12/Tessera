@@ -1,0 +1,17 @@
+# Xcode
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+
+# Native dependencies are rebuilt by Scripts/build-libtorrent.sh
+Vendor/.work/
+Vendor/libtorrent.xcframework/
+Vendor/include/
+Vendor/libtorrent.xcconfig
+
+.DS_Store
+
+# SwiftPM
+.build/
+.swiftpm/
