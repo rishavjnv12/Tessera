@@ -111,12 +111,13 @@ struct MainWindow: View {
                         .tag(SidebarItem.filter(f))
                 }
             }
-            #if DEBUG
-            Section("Developer") {
-                Label("Piece Map Demo", systemImage: "square.grid.3x3.fill")
-                    .tag(SidebarItem.demo)
-            }
-            #endif
+            // Developer section, hidden for now. The demo still opens with the -openDemo YES launch option.
+            // #if DEBUG
+            // Section("Developer") {
+            //     Label("Piece Map Demo", systemImage: "square.grid.3x3.fill")
+            //         .tag(SidebarItem.demo)
+            // }
+            // #endif
         }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 12) {
