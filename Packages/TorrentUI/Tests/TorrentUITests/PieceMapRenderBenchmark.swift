@@ -6,6 +6,14 @@ import Testing
 /// the CPU, so these numbers are an upper bound for the drawing work.
 @MainActor
 struct PieceMapRenderBenchmark {
+    /// One 60 fps frame. Debug builds are unoptimized and share the CPU with builds and
+    /// simulators, so they only guard against gross regressions; the real budget is for release.
+    #if DEBUG
+    let frameBudget = 50.0
+    #else
+    let frameBudget = 16.7
+    #endif
+
     func milliseconds(_ runs: Int, _ body: () -> Void) -> Double {
         body() // warm up
         let clock = ContinuousClock()
@@ -38,7 +46,7 @@ struct PieceMapRenderBenchmark {
     func fitsFrameBudgetAtDefaultZoom(pieces: Int) {
         let cost = renderCost(pieces: pieces, zoom: 1)
         print("[bench] \(pieces) pieces, zoom 1: \(cost.cells) cells, of which aggregation \(String(format: "%.2f", cost.build)) ms; full redraw \(String(format: "%.2f", cost.render)) ms")
-        #expect(cost.render < 16.7, "one full redraw (aggregation + paths + raster) must fit in a 60 fps frame")
+        #expect(cost.render < frameBudget, "one full redraw (aggregation + paths + raster) must fit in a frame")
     }
 
     @Test func fullyZoomedTwentyFiveThousandPieces() {

@@ -3,7 +3,7 @@ import TorrentKit
 
 /// User settings, saved in UserDefaults and applied to the engine as they change.
 struct AppSettings: Codable, Equatable {
-    /// nil uses the default folder (~/Torrent on Mac, Documents/Torrent on iPhone).
+    /// nil uses the default folder (~/Torrent on Mac, the app's Documents folder on iPhone).
     var downloadFolderPath: String?
 
     /// 0 picks a random port at launch.
@@ -23,6 +23,8 @@ struct AppSettings: Codable, Equatable {
     var askBeforeAdding = true
     var notifyWhenFinished = true
     var showInMenuBar = true
+    /// iPhone: stop the screen from locking while something downloads (iOS pauses apps that leave the screen).
+    var keepScreenAwake = false
 
     static let defaultsKey = "settings"
     /// Mirrored into its own UserDefaults key for the menu bar scene (see TorrentMacApp).
@@ -62,6 +64,7 @@ struct AppSettings: Codable, Equatable {
         askBeforeAdding = try c.decodeIfPresent(Bool.self, forKey: .askBeforeAdding) ?? d.askBeforeAdding
         notifyWhenFinished = try c.decodeIfPresent(Bool.self, forKey: .notifyWhenFinished) ?? d.notifyWhenFinished
         showInMenuBar = try c.decodeIfPresent(Bool.self, forKey: .showInMenuBar) ?? d.showInMenuBar
+        keepScreenAwake = try c.decodeIfPresent(Bool.self, forKey: .keepScreenAwake) ?? d.keepScreenAwake
     }
 
     var sessionSettings: SessionSettings {

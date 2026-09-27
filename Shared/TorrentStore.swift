@@ -162,6 +162,15 @@ final class TorrentStore {
         }
     }
 
+    /// A .torrent file's contents, e.g. from the share extension's inbox.
+    func open(torrentData data: Data, name: String) {
+        do {
+            queue(PendingAdd(source: .file(data: data, name: name), preview: try TorrentPreview(data: data)))
+        } catch {
+            lastError = String(localized: "“\(name)” couldn’t be opened: \(error.localizedDescription)")
+        }
+    }
+
     func open(magnet link: String) {
         let link = link.trimmingCharacters(in: .whitespacesAndNewlines)
         do {

@@ -265,3 +265,42 @@ struct PriorityBadge: View {
         }
     }
 }
+
+/// Shown while a file downloads from its start.
+struct FromStartBanner: View {
+    var file: TorrentFile
+    var onOpen: () -> Void
+    var onStop: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "play.circle.fill")
+                .font(.title2)
+                .foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Downloading from Start")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                Text(file.name)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Text(file.canOpen
+                     ? String(localized: "Ready to \(Format.percent(file.readyFraction)). Other files wait until it finishes.")
+                     : String(localized: "Getting the start and end first. Other files wait until it finishes."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+            Spacer(minLength: 8)
+            if file.canOpen {
+                Button("Open", action: onOpen)
+                    .buttonStyle(.borderedProminent)
+            }
+            Button("Stop", action: onStop)
+        }
+        .controlSize(.small)
+        .padding(12)
+        .background(.fill.quinary, in: .rect(cornerRadius: 12, style: .continuous))
+    }
+}

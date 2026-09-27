@@ -145,9 +145,35 @@ targets:
     sources:
       - Apps/iOS
       - Shared
+      - SharedIOS
     dependencies:
       - target: TorrentKit
       - package: TorrentUI
+      - target: TorrentShare
+      - target: TorrentWidgets
+    entitlements:
+      path: Apps/iOS/Torrent.entitlements
+      properties:
+        com.apple.security.application-groups: [group.io.github.rishavjnv12.Torrent]
+    info:
+      path: Apps/iOS/Info.plist
+      properties:
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: org.bittorrent.torrent
+            UTTypeDescription: BitTorrent Document
+            UTTypeConformsTo: [public.data]
+            UTTypeTagSpecification:
+              public.filename-extension: [torrent]
+              public.mime-type: [application/x-bittorrent]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: BitTorrent Document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes: [org.bittorrent.torrent]
+        CFBundleURLTypes:
+          - CFBundleURLName: Magnet Link
+            CFBundleURLSchemes: [magnet]
+        NSSupportsLiveActivities: true
     settings:
       base:
         PRODUCT_NAME: Torrent
@@ -168,6 +194,66 @@ targets:
         ENABLE_PREVIEWS: YES
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
+
+  # Share Sheet: "Share → Torrent" for .torrent files and magnet links from other apps.
+  TorrentShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Extensions/Share
+      - SharedIOS/Inbox.swift
+    entitlements:
+      path: Extensions/Share/TorrentShare.entitlements
+      properties:
+        com.apple.security.application-groups: [group.io.github.rishavjnv12.Torrent]
+    info:
+      path: Extensions/Share/Info.plist
+      properties:
+        CFBundleDisplayName: Torrent
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule: >-
+              SUBQUERY(extensionItems, $item, SUBQUERY($item.attachments, $attachment,
+              ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "org.bittorrent.torrent"
+              OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.url"
+              OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.plain-text").@count >= 1).@count >= 1
+    settings:
+      base:
+        PRODUCT_NAME: TorrentShare
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Torrent.Share
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Torrent
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        SKIP_INSTALL: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
+
+  # Live Activity and Dynamic Island for downloads.
+  TorrentWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Extensions/Widgets
+      - SharedIOS/DownloadActivity.swift
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    info:
+      path: Extensions/Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Torrent
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_NAME: TorrentWidgets
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Torrent.Widgets
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Torrent
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        SKIP_INSTALL: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
 
 schemes:
   TorrentKit:

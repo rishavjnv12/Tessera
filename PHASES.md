@@ -113,7 +113,7 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 
 **Status:** Built: the sidebar filters with counts, a sortable table with native right-click menus (double-click shows the files in Finder), and search. The inspector shows the piece map, then Files, Peers, Trackers (add and remove) and Info (hashes, dates, location, magnet link). Adding works through the open panel, drag and drop, Finder ("Open With", double-click) and magnet links. An add sheet lets you choose the folder and files. The menus are File (⌘O, ⇧⌘O) and Torrent (pause ⌘. , resume ⌘/, all ⌥, remove ⌘⌫, Show in Finder ⇧⌘R, Download in Order). The Settings window has General, Transfers and Network tabs, saved and applied live. The app also has Dock progress with a count badge, finish notifications, and a menu bar item that can be turned off. The default download folder is **~/Torrent** (user choice, via a home-relative sandbox exception). Other folders use security-scoped bookmarks. New engine APIs: peers, trackers, details, preview and file priorities at add time. 3 new engine tests (19 total), 16 TorrentUI tests. Verified: the sandboxed app downloaded Sintel into ~/Torrent. Not yet verified by eye: the layout, menus, add sheet, Settings, Dock, notifications and menu bar.
 
-## Phase 6 — iPhone app (Priority 4)
+## Phase 6 — iPhone app (Priority 4) 🔄 Built, waiting for on-device check (2026-09-27)
 
 - List of torrents with compact progress, swipe actions (pause, delete), pull to add.
 - Detail screen: piece map card, files with priority menus, Download from Start action.
@@ -123,6 +123,17 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 - Clear handling of background suspension: pause cleanly, resume on return.
 
 **Done when:** the full add, prioritise, download flow works on a device.
+
+**Status:** Built, and checked in the iPhone 17 and iPad Pro simulators:
+- A list with a filter menu, search, swipe actions and context menus. On iPad the list sits beside the detail.
+- A detail screen with the piece map and Files, Peers, Trackers and Info sections.
+- An add sheet for choosing files, and a Settings screen with Keep Screen Awake (off by default), limits, queue and peer discovery.
+- .torrent files and magnet links open the app, via `onOpenURL` and document and URL types.
+- A **Share extension** (`TorrentShare`) writes to the App Group inbox (`group.io.github.rishavjnv12.Torrent`), and the app adds those torrents when it becomes active. Tested by dropping a magnet link into the inbox.
+- A **Live Activity** with Dynamic Island (`TorrentWidgets`): started while downloading, marked paused when the app leaves the screen, ended when done. The log confirms it is created and updated. Its look is not checked, because simulator screenshots leave out the island.
+- Leaving the screen saves progress inside a background task. Downloads land in the app's Documents folder (Files: On My iPhone › Torrent).
+
+Engine fix: iOS can move an app's data container after a reinstall or update. Saved torrent paths inside the old container are now moved to the new one and re-checked. Before this, a reinstall made Sintel download again. Still to check on a real iPhone: the Share Sheet, the Live Activity and Dynamic Island, the Files app, and suspension behavior.
 
 ## Phase 7 — Remote control (iPhone controls Mac)
 

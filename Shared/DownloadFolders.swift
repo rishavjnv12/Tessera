@@ -3,7 +3,7 @@ import OSLog
 
 /// Where downloads go, and (on Mac) keeping access to folders outside the sandbox.
 enum DownloadFolders {
-    /// ~/Torrent on Mac, Documents/Torrent on iPhone. Created if missing.
+    /// ~/Torrent on Mac, the app's Documents folder on iPhone and iPad. Created if missing.
     static var defaultFolder: URL {
         #if os(macOS)
         // Inside the sandbox, the home directory APIs return the app's container. The real home
@@ -11,7 +11,8 @@ enum DownloadFolders {
         let home = getpwuid(getuid()).flatMap { String(validatingCString: $0.pointee.pw_dir) } ?? NSHomeDirectory()
         let folder = URL(filePath: home, directoryHint: .isDirectory).appending(path: "Torrent", directoryHint: .isDirectory)
         #else
-        let folder = URL.documentsDirectory.appending(path: "Torrent", directoryHint: .isDirectory)
+        // The app's own folder, shown in Files as On My iPhone › Torrent.
+        let folder = URL.documentsDirectory
         #endif
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         return folder

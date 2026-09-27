@@ -443,6 +443,23 @@ suppressFinishedEvent:(bool)suppressFinished
     return YES;
 }
 
+/// Maps a save path that points into a previous copy of this app's container onto the current one.
+/// An iOS app's data container is ".../Containers/Data/Application/<UUID>/"; the UUID can change after
+/// a reinstall or an update while the data moves with it, so saved absolute paths go stale. Returns
+/// nil when the path does not need to change.
+static NSString *_Nullable TKRelocatedSavePath(NSString *path) {
+    auto strip = [](NSString *s) { return [s hasPrefix:@"/private/"] ? [s substringFromIndex:8] : s; };
+    NSString *home = strip(NSHomeDirectory().stringByStandardizingPath);
+    NSString *saved = strip(path.stringByStandardizingPath);
+    NSString *containers = home.stringByDeletingLastPathComponent; // .../Application (iOS)
+    if (![containers.lastPathComponent isEqualToString:@"Application"]) return nil; // not an iOS data container
+    NSString *prefix = [containers stringByAppendingString:@"/"];
+    if (![saved hasPrefix:prefix] || [saved hasPrefix:[home stringByAppendingString:@"/"]] || [saved isEqualToString:home]) return nil;
+    NSArray<NSString *> *rest = [saved substringFromIndex:prefix.length].pathComponents; // <old UUID>/Documents/...
+    if (rest.count < 2) return nil;
+    return [NSString pathWithComponents:[@[home] arrayByAddingObjectsFromArray:[rest subarrayWithRange:NSMakeRange(1, rest.count - 1)]]];
+}
+
 - (void)restoreTorrents {
     NSFileManager *fm = NSFileManager.defaultManager;
     NSArray<NSURL *> *files = [fm contentsOfDirectoryAtURL:_stateDirectory includingPropertiesForKeys:nil options:0 error:nil];
@@ -467,6 +484,14 @@ suppressFinishedEvent:(bool)suppressFinished
         return a.second.added_time < b.second.added_time;
     });
     for (auto &[torrentID, atp] : saved) {
+        if (NSString *moved = TKRelocatedSavePath(TKString(atp.save_path))) {
+            os_log_info(TKLog(), "Save path moved with the app container: %{public}@", moved);
+            atp.save_path = moved.fileSystemRepresentation;
+            // What the old resume data says is on disk may be out of date; check the files again.
+            atp.have_pieces.clear();
+            atp.verified_pieces.clear();
+            atp.unfinished_pieces.clear();
+        }
         bool const wasComplete = atp.completed_time > 0;
         NSError *error = nil;
         if (![self addToSession:std::move(atp) torrentID:torrentID suppressFinishedEvent:wasComplete name:nil error:&error]) {
