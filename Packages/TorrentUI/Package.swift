@@ -9,5 +9,6 @@ let package = Package(
     ],
     targets: [
         .target(name: "TorrentUI"),
+        .testTarget(name: "TorrentUITests", dependencies: ["TorrentUI"]),
     ]
 )

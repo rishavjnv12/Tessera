@@ -37,6 +37,7 @@ targets:
       - path: TorrentKit/include
         headerVisibility: public
       - path: TorrentKit/Sources
+        headerVisibility: project
     configFiles:
       Debug: Vendor/libtorrent.xcconfig
       Release: Vendor/libtorrent.xcconfig
@@ -55,6 +56,32 @@ targets:
         CLANG_ENABLE_MODULES: YES
         GCC_SYMBOLS_PRIVATE_EXTERN: YES
 
+  # Command-line harness for exercising the engine against real torrents.
+  torrentctl:
+    type: tool
+    platform: macOS
+    sources:
+      - Tools/torrentctl
+    dependencies:
+      - target: TorrentKit
+        embed: false
+    settings:
+      base:
+        PRODUCT_NAME: torrentctl
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path"
+
+  TorrentKitTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - TorrentKitTests
+    dependencies:
+      - target: TorrentKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.TorrentKitTests
+        GENERATE_INFOPLIST_FILE: YES
+
   Torrent-macOS:
     type: application
     platform: macOS
@@ -72,6 +99,30 @@ targets:
         com.apple.security.network.server: true
         com.apple.security.files.user-selected.read-write: true
         com.apple.security.files.downloads.read-write: true
+        # Folders picked in Settings or the add sheet stay usable after a relaunch.
+        com.apple.security.files.bookmarks.app-scope: true
+        # The default download folder, ~/Torrent. Fine for direct (non-App Store) distribution.
+        com.apple.security.temporary-exception.files.home-relative-path.read-write:
+          - /Torrent/
+    info:
+      path: Apps/macOS/Info.plist
+      properties:
+        # .torrent files open in the app ("Open With", double-click); magnet links from browsers.
+        UTImportedTypeDeclarations:
+          - UTTypeIdentifier: org.bittorrent.torrent
+            UTTypeDescription: BitTorrent Document
+            UTTypeConformsTo: [public.data]
+            UTTypeTagSpecification:
+              public.filename-extension: [torrent]
+              public.mime-type: [application/x-bittorrent]
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: BitTorrent Document
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes: [org.bittorrent.torrent]
+        CFBundleURLTypes:
+          - CFBundleURLName: Magnet Link
+            CFBundleURLSchemes: [magnet]
     settings:
       base:
         PRODUCT_NAME: Torrent
@@ -79,6 +130,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Torrent
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        INFOPLIST_KEY_NSUserNotificationsUsageDescription: "Torrent tells you when a download finishes." 
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_HARDENED_RUNTIME: YES
@@ -107,6 +160,9 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Torrent talks to your router to open a port so other peers can connect to you."
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
@@ -114,6 +170,19 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
 
 schemes:
+  TorrentKit:
+    build:
+      targets:
+        TorrentKit: all
+    test:
+      targets:
+        - TorrentKitTests
+  torrentctl:
+    build:
+      targets:
+        torrentctl: all
+    run:
+      config: Debug
   Torrent-macOS:
     build:
       targets:

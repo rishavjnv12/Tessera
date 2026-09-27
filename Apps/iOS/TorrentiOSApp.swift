@@ -1,14 +1,17 @@
 import SwiftUI
-import TorrentUI
 
 @main
 struct TorrentiOSApp: App {
-    @State private var engine = EngineModel()
+    @State private var store = TorrentStore()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
-            EngineStatusView(info: engine.info)
-                .task { await engine.runSelfTest() }
+            IOSContentView(store: store)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // iOS suspends the app soon after it leaves the screen; save progress first.
+            if phase == .background { store.saveResumeData() }
         }
     }
 }

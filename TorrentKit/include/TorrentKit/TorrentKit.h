@@ -8,3 +8,15 @@ FOUNDATION_EXPORT const unsigned char TorrentKitVersionString[];
 
 #import <TorrentKit/TKDefines.h>
 #import <TorrentKit/TKBuildInfo.h>
+#import <TorrentKit/TKSessionSettings.h>
+#import <TorrentKit/TKAddTorrentOptions.h>
+#import <TorrentKit/TKTorrentStatus.h>
+#import <TorrentKit/TKFileEntry.h>
+#import <TorrentKit/TKPieceMap.h>
+#import <TorrentKit/TKPeer.h>
+#import <TorrentKit/TKTracker.h>
+#import <TorrentKit/TKTorrentDetails.h>
+#import <TorrentKit/TKTorrentPreview.h>
+#import <TorrentKit/TKSessionSnapshot.h>
+#import <TorrentKit/TKTorrentEvent.h>
+#import <TorrentKit/TKSession.h>
