@@ -65,7 +65,11 @@ struct IOSAddSheet: View {
                 Section {
                     Toggle("Start downloading right away", isOn: $start)
                 } footer: {
-                    Text("Saved to On My iPhone › Torrent, visible in the Files app.")
+                    if store.isRemote, let mac = store.backend?.displayName {
+                        Text("Downloads on \(mac), into its download folder.")
+                    } else {
+                        Text("Saved to On My iPhone › Torrent, visible in the Files app.")
+                    }
                 }
             }
             .navigationTitle(preview.isMagnet ? "Add Magnet Link" : "Add Torrent")

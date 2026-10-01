@@ -78,8 +78,8 @@ private struct TorrentInspector: View {
             .padding(16)
         }
         .task(id: torrent.id) {
-            guard let session = store.session else { return }
-            await feed.run(session: session, torrentID: torrent.id)
+            guard let backend = store.backend else { return }
+            await feed.run(backend: backend, torrentID: torrent.id)
         }
     }
 
@@ -127,7 +127,7 @@ private struct TorrentInspector: View {
         )
     }
 
-    private func perform(_ action: (TorrentSession) throws -> Void) {
+    private func perform(_ action: (any TorrentBackend) throws -> Void) {
         guard store.run(action) else { return }
         feed.refreshSoon()
     }
@@ -172,9 +172,9 @@ private struct PeersTab: View {
             .frame(minHeight: 260)
         }
         .task(id: torrentID) {
-            guard let session = store.session else { return }
+            guard let backend = store.backend else { return }
             let id = torrentID
-            await poll.run(every: .seconds(2)) { session.peers(of: id) }
+            await poll.run(every: .seconds(2)) { backend.peers(of: id) }
         }
     }
 }
@@ -221,9 +221,9 @@ private struct TrackersTab: View {
             .controlSize(.small)
         }
         .task(id: torrent.id) {
-            guard let session = store.session else { return }
+            guard let backend = store.backend else { return }
             let id = torrent.id
-            await poll.run(every: .seconds(3)) { session.trackers(of: id) }
+            await poll.run(every: .seconds(3)) { backend.trackers(of: id) }
         }
     }
 
@@ -347,9 +347,16 @@ private struct InfoTab: View {
         .frame(minHeight: 520)
         .padding(-16) // grouped form brings its own margins
         .task(id: torrent.id) {
-            guard let session = store.session else { return }
+            guard let backend = store.backend else { return }
             let id = torrent.id
-            details = await Task.detached { session.details(of: id) }.value
+            // Polled: a remote Mac answers on the next request.
+            while !Task.isCancelled {
+                if let d = await Task.detached(operation: { backend.details(of: id) }).value {
+                    details = d
+                    if !backend.isRemote { break }
+                }
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
     }
 

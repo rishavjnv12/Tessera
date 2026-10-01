@@ -33,7 +33,8 @@ struct FileList: View {
     var onSetPriority: ((Set<Int>, PiecePriority) -> Void)?
     var onDownloadFromStart: ((Int) -> Void)?
     var onStopDownloadingFromStart: (() -> Void)?
-    var onOpen: (URL) -> Void
+    /// nil when the files are not on this device (a remote Mac).
+    var onOpen: ((URL) -> Void)?
 
     private var selectedPriority: PiecePriority? {
         PiecePriority.common(files.filter { selection.contains($0.index) }.map { PiecePriority(level: $0.priority) })
@@ -80,7 +81,7 @@ struct FileList: View {
                             priority: PiecePriority(level: file.priority),
                             isSelected: selection.contains(file.index),
                             readiness: file.downloadsFromStart ? .init(readyFraction: file.readyFraction, hasEnd: file.hasEnd) : nil,
-                            onOpen: file.canOpen && file.downloadsFromStart ? { onOpen(file.url(in: savePath)) } : nil,
+                            onOpen: file.canOpen && file.downloadsFromStart ? onOpen.map { open in { open(file.url(in: savePath)) } } : nil,
                             actions: actions(for: file),
                             onSetPriority: onSetPriority.map { set in
                                 { priority in set(selection.contains(file.index) ? selection : [file.index], priority) }
@@ -101,7 +102,7 @@ struct FileList: View {
         } else if file.progress < 1, let onDownloadFromStart {
             actions.append(MenuAction(String(localized: "Download from Start"), systemImage: "play.circle") { onDownloadFromStart(file.index) })
         }
-        if file.canOpen {
+        if file.canOpen, let onOpen {
             let url = file.url(in: savePath)
             actions.append(MenuAction(String(localized: "Open"), systemImage: "arrow.up.forward.app") { onOpen(url) })
             #if os(macOS)
@@ -269,7 +270,8 @@ struct PriorityBadge: View {
 /// Shown while a file downloads from its start.
 struct FromStartBanner: View {
     var file: TorrentFile
-    var onOpen: () -> Void
+    /// nil when the file is not on this device.
+    var onOpen: (() -> Void)?
     var onStop: () -> Void
 
     var body: some View {
@@ -293,7 +295,7 @@ struct FromStartBanner: View {
                     .monospacedDigit()
             }
             Spacer(minLength: 8)
-            if file.canOpen {
+            if file.canOpen, let onOpen {
                 Button("Open", action: onOpen)
                     .buttonStyle(.borderedProminent)
             }

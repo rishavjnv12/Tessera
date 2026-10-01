@@ -31,6 +31,15 @@ TK_EXPORT
 /// libtorrent does not track availability while seeding; `availability` is then all zero.
 @property (nonatomic, readonly) BOOL tracksAvailability;
 
+/// Builds a piece map from its parts, e.g. one received from another device.
+- (instancetype)initWithID:(NSString *)torrentID
+               pieceLength:(NSInteger)pieceLength
+                 totalSize:(int64_t)totalSize
+                      fill:(NSData *)fill
+                priorities:(NSData *)priorities
+              availability:(NSData *)availability
+        tracksAvailability:(BOOL)tracksAvailability NS_SWIFT_NAME(init(torrentID:pieceLength:totalSize:fill:priorities:availability:tracksAvailability:));
+
 - (instancetype)init NS_UNAVAILABLE;
 
 @end

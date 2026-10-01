@@ -9,6 +9,7 @@ struct SettingsView: View {
             Tab("General", systemImage: "gearshape") { GeneralSettings(store: store) }
             Tab("Transfers", systemImage: "arrow.up.arrow.down") { TransferSettings(store: store) }
             Tab("Network", systemImage: "network") { NetworkSettings(store: store) }
+            Tab("Remote", systemImage: "iphone.gen3.radiowaves.left.and.right") { RemoteSettings(store: store) }
         }
         .frame(width: 520)
         .scenePadding()

@@ -112,7 +112,7 @@ struct TorrentTable: View {
         }))
         if !plural {
             items.append(.action(MenuAction(String(localized: "Copy Magnet Link"), systemImage: "link") {
-                guard let link = store.session?.details(of: torrent.id)?.magnetLink else { return }
+                guard let link = store.backend?.details(of: torrent.id)?.magnetLink else { return }
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(link, forType: .string)
             }))

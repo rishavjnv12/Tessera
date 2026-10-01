@@ -35,7 +35,7 @@ struct TorrentDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     TorrentHeader(torrent: status)
                     if let file = feed.files.first(where: { $0.index == status.fileDownloadingFromStart }) {
-                        FromStartBanner(file: file, onOpen: { previewURL = file.url(in: status.savePath) }) {
+                        FromStartBanner(file: file, onOpen: store.isRemote ? nil : { previewURL = file.url(in: status.savePath) }) {
                             perform { try $0.stopDownloadingFromStart(torrent: torrentID) }
                         }
                     }
@@ -57,7 +57,7 @@ struct TorrentDetailView: View {
                                 perform { try $0.downloadFromStart(file: index, torrent: torrentID) }
                             } : nil,
                             onStopDownloadingFromStart: { perform { try $0.stopDownloadingFromStart(torrent: torrentID) } },
-                            onOpen: { previewURL = $0 }
+                            onOpen: store.isRemote ? nil : { previewURL = $0 }
                         )
                     case .peers:
                         PeersSection(store: store, torrentID: torrentID)
@@ -81,9 +81,9 @@ struct TorrentDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .task(id: torrentID) {
-            guard let session = store.session else { return }
+            guard let backend = store.backend else { return }
             selectedFiles = []
-            await feed.run(session: session, torrentID: torrentID)
+            await feed.run(backend: backend, torrentID: torrentID)
         }
         .quickLookPreview($previewURL)
         .confirmationDialog("Remove “\(status?.name ?? "")”?", isPresented: $confirmingRemoval, titleVisibility: .visible) {
@@ -103,7 +103,7 @@ struct TorrentDetailView: View {
         status.hasMetadata && status.state != .seeding
     }
 
-    private func perform(_ action: (TorrentSession) throws -> Void) {
+    private func perform(_ action: (any TorrentBackend) throws -> Void) {
         guard store.run(action) else { return }
         feed.refreshSoon()
     }
@@ -138,13 +138,15 @@ struct TorrentDetailView: View {
                         Label("Download in Order", systemImage: "arrow.right.to.line")
                     }
                     .disabled(status.fileDownloadingFromStart >= 0 || status.state == .seeding)
-                    if let link = store.session?.details(of: torrentID)?.magnetLink {
+                    if let link = store.backend?.details(of: torrentID)?.magnetLink {
                         ShareLink(item: link, preview: SharePreview(status.name)) {
                             Label("Share Magnet Link", systemImage: "square.and.arrow.up")
                         }
                         Button("Copy Magnet Link", systemImage: "doc.on.doc") { UIPasteboard.general.string = link }
                     }
-                    Button("Show in Files", systemImage: "folder") { FilesApp.open(status.contentURL) }
+                    if !store.isRemote {
+                        Button("Show in Files", systemImage: "folder") { FilesApp.open(status.contentURL) }
+                    }
                     Divider()
                     Button("Remove…", systemImage: "trash", role: .destructive) { confirmingRemoval = true }
                 }
@@ -243,9 +245,9 @@ private struct PeersSection: View {
             }
         }
         .task(id: torrentID) {
-            guard let session = store.session else { return }
+            guard let backend = store.backend else { return }
             let id = torrentID
-            await poll.run(every: .seconds(2)) { session.peers(of: id) }
+            await poll.run(every: .seconds(2)) { backend.peers(of: id) }
         }
     }
 }
@@ -299,9 +301,9 @@ private struct TrackersSection: View {
             }
         }
         .task(id: torrent.id) {
-            guard let session = store.session else { return }
+            guard let backend = store.backend else { return }
             let id = torrent.id
-            await poll.run(every: .seconds(3)) { session.trackers(of: id) }
+            await poll.run(every: .seconds(3)) { backend.trackers(of: id) }
         }
     }
 
@@ -363,7 +365,9 @@ private struct InfoSection: View {
                     row("Ratio", torrent.ratio.formatted(.number.precision(.fractionLength(2))))
                 }
                 HStack {
-                    Button("Show in Files", systemImage: "folder") { FilesApp.open(torrent.contentURL) }
+                    if !store.isRemote {
+                        Button("Show in Files", systemImage: "folder") { FilesApp.open(torrent.contentURL) }
+                    }
                     Spacer()
                     ShareLink(item: d.magnetLink, preview: SharePreview(d.name)) {
                         Label("Share Magnet Link", systemImage: "square.and.arrow.up")
@@ -376,9 +380,16 @@ private struct InfoSection: View {
             }
         }
         .task(id: torrent.id) {
-            guard let session = store.session else { return }
+            guard let backend = store.backend else { return }
             let id = torrent.id
-            details = await Task.detached { session.details(of: id) }.value
+            // Polled: a remote Mac answers on the next request.
+            while !Task.isCancelled {
+                if let d = await Task.detached(operation: { backend.details(of: id) }).value {
+                    details = d
+                    if !backend.isRemote { break }
+                }
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
     }
 

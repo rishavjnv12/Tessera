@@ -72,6 +72,12 @@ struct MainWindow: View {
                  ? "The downloaded files are moved out of the download folder and deleted. This can’t be undone."
                  : "Downloaded files stay in the download folder.")
         }
+        .alert(pairingTitle, isPresented: pairingBinding, presenting: store.pairingRequest) { request in
+            Button("Allow") { answerPairing(true) }
+            Button("Don’t Allow", role: .cancel) { answerPairing(false) }
+        } message: { request in
+            Text("It will be able to see and control downloads on this Mac. Allow only if the iPhone shows this code:\n\n\(request.code)")
+        }
         .alert("Couldn’t Complete the Action", isPresented: errorBinding) {
             Button("OK") {}
         } message: {
@@ -216,7 +222,7 @@ struct MainWindow: View {
         actions.remove = { delete in if !selection.isEmpty { removal = Removal(ids: selection, deleteFiles: delete) } }
         actions.revealInFinder = { NSWorkspace.shared.activateFileViewerSelecting(selectedTorrents.map(\.contentURL)) }
         actions.copyMagnetLink = {
-            guard selection.count == 1, let id = selection.first, let link = store.session?.details(of: id)?.magnetLink else { return }
+            guard selection.count == 1, let id = selection.first, let link = store.backend?.details(of: id)?.magnetLink else { return }
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(link, forType: .string)
         }
@@ -266,6 +272,21 @@ struct MainWindow: View {
         Binding(get: { store.pendingAdds.first }, set: { value in
             if value == nil, let first = store.pendingAdds.first { store.dismiss(first) }
         })
+    }
+
+    private var pairingTitle: String {
+        guard let request = store.pairingRequest else { return "" }
+        return String(localized: "Allow “\(request.deviceName)” to control Torrent?")
+    }
+
+    private var pairingBinding: Binding<Bool> {
+        Binding(get: { store.pairingRequest != nil }, set: { if !$0 { answerPairing(false) } })
+    }
+
+    private func answerPairing(_ allowed: Bool) {
+        guard let request = store.pairingRequest else { return }
+        store.pairingRequest = nil
+        request.respond(allowed)
     }
 
     private var errorBinding: Binding<Bool> {

@@ -16,10 +16,10 @@ final class PieceMapFeed {
 
     private var producer: PieceMapProducer?
 
-    func run(session: TorrentSession, torrentID: String) async {
+    func run(backend: any TorrentBackend, torrentID: String) async {
         map = .empty
         files = []
-        let producer = PieceMapProducer(session: session, torrentID: torrentID)
+        let producer = PieceMapProducer(backend: backend, torrentID: torrentID)
         self.producer = producer
         while !Task.isCancelled {
             apply(await producer.next())
@@ -68,13 +68,13 @@ enum PieceMapUpdate: Sendable {
 
 /// Runs off the main actor and remembers what it last sent.
 actor PieceMapProducer {
-    let session: TorrentSession
+    let backend: any TorrentBackend
     let torrentID: String
     private var sent: PieceMap?
     private var fileLayout: [PieceMap.File] = []
 
-    init(session: TorrentSession, torrentID: String) {
-        self.session = session
+    init(backend: any TorrentBackend, torrentID: String) {
+        self.backend = backend
         self.torrentID = torrentID
     }
 
@@ -84,8 +84,8 @@ actor PieceMapProducer {
     }
 
     func next() -> (PieceMapUpdate, [TorrentFile]?) {
-        let files = session.files(of: torrentID)
-        guard let sample = session.pieces(of: torrentID) else { return (.unchanged, files) }
+        let files = backend.files(of: torrentID)
+        guard let sample = backend.pieces(of: torrentID) else { return (.unchanged, files) }
         if fileLayout.isEmpty, let files {
             fileLayout = files.map {
                 PieceMap.File(id: $0.index, path: $0.path, size: $0.size,
@@ -99,22 +99,5 @@ actor PieceMapProducer {
             return (unchanged ? .unchanged : .delta(delta), files)
         }
         return (.full(map), files)
-    }
-}
-
-extension PieceMap {
-    nonisolated init(_ sample: PieceSnapshot, files: [PieceMap.File]) {
-        let count = sample.pieceCount
-        let fill = [UInt8](sample.fill)
-        let priority = [UInt8](sample.priorities)
-        let availability = sample.availability.withUnsafeBytes { raw in
-            Array(raw.bindMemory(to: UInt16.self).prefix(count))
-        }
-        self.init(
-            pieceLength: sample.pieceLength, totalSize: sample.totalSize,
-            fill: fill, priority: priority,
-            availability: availability.count == count ? availability : Array(repeating: 0, count: count),
-            tracksAvailability: sample.tracksAvailability, files: count > 0 ? files : []
-        )
     }
 }

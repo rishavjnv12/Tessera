@@ -25,6 +25,8 @@ struct AppSettings: Codable, Equatable {
     var showInMenuBar = true
     /// iPhone: stop the screen from locking while something downloads (iOS pauses apps that leave the screen).
     var keepScreenAwake = false
+    /// Mac: let paired iPhones and iPads control this Mac over the local network.
+    var allowRemoteControl = true
 
     static let defaultsKey = "settings"
     /// Mirrored into its own UserDefaults key for the menu bar scene (see TorrentMacApp).
@@ -65,6 +67,7 @@ struct AppSettings: Codable, Equatable {
         notifyWhenFinished = try c.decodeIfPresent(Bool.self, forKey: .notifyWhenFinished) ?? d.notifyWhenFinished
         showInMenuBar = try c.decodeIfPresent(Bool.self, forKey: .showInMenuBar) ?? d.showInMenuBar
         keepScreenAwake = try c.decodeIfPresent(Bool.self, forKey: .keepScreenAwake) ?? d.keepScreenAwake
+        allowRemoteControl = try c.decodeIfPresent(Bool.self, forKey: .allowRemoteControl) ?? d.allowRemoteControl
     }
 
     var sessionSettings: SessionSettings {

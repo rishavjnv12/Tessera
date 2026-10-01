@@ -50,6 +50,17 @@
                ReferencedContainer = "container:Torrent.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "B9D192C386E32BB2E950FF12"
+               BuildableName = "RemoteTests.xctest"
+               BlueprintName = "RemoteTests"
+               ReferencedContainer = "container:Torrent.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

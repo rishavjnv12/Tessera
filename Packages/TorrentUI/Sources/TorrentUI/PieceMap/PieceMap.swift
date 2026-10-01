@@ -1,7 +1,7 @@
 import Foundation
 
 /// State of every piece in a torrent, independent of the engine that produced it.
-public struct PieceMap: Sendable, Equatable {
+public struct PieceMap: Sendable, Equatable, Codable {
     /// Values in `fill`: 0 missing, 1...254 downloading (share of blocks received), 255 downloaded.
     public static let missing: UInt8 = 0
     public static let have: UInt8 = 255
@@ -18,7 +18,7 @@ public struct PieceMap: Sendable, Equatable {
     /// Files and the pieces they span, for boundaries and hover details.
     public var files: [File]
 
-    public struct File: Sendable, Equatable, Identifiable {
+    public struct File: Sendable, Equatable, Identifiable, Codable {
         public var id: Int
         public var path: String
         public var size: Int64
@@ -90,7 +90,7 @@ public struct PieceMap: Sendable, Equatable {
 // MARK: - Deltas
 
 /// The pieces that changed between two maps of the same torrent.
-public struct PieceMapDelta: Sendable, Equatable {
+public struct PieceMapDelta: Sendable, Equatable, Codable {
     public var indices: [Int32] = []
     public var fill: [UInt8] = []
     public var priority: [UInt8] = []

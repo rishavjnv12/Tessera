@@ -592,4 +592,43 @@ final class TorrentSessionTests {
         let magnetDetails = try #require(session.details(of: magnetID))
         #expect(!magnetDetails.hasMetadata && magnetDetails.name == "Later" && magnetDetails.fileCount == 0)
     }
+
+    // MARK: Remote control encoding
+
+    @Test func valueObjectsRoundTripThroughJSON() async throws {
+        let fixture = try makeFixture()
+        let session = try makeSession("json", savePath: fixture.directory)
+        let id = try session.addTorrent(data: fixture.torrentData, options: nil)
+        try session.setLimits(download: 12_345, upload: 0, torrent: id)
+        try await waitFor(session, id, "seeding") { $0.state == .seeding }
+
+        func roundTrip<T: JSONRepresentable>(_ value: T) throws -> T {
+            let data = try JSONSerialization.data(withJSONObject: value.jsonObject)
+            let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+            return try #require(T(jsonObject: json))
+        }
+
+        let status = try #require(session.status(of: id))
+        let status2 = try roundTrip(status)
+        #expect(status2.id == id && status2.name == status.name && status2.state == status.state)
+        #expect(status2.totalSize == status.totalSize && status2.progress == status.progress)
+        #expect(status2.downloadLimit == 12_345 && status2.isPaused == status.isPaused)
+        #expect(status2.addedDate?.timeIntervalSince1970 == status.addedDate?.timeIntervalSince1970)
+
+        let files = try #require(session.files(of: id))
+        let files2 = try files.map(roundTrip)
+        #expect(files2.map(\.path) == files.map(\.path))
+        #expect(files2.map(\.lastPiece) == files.map(\.lastPiece))
+        #expect(files2.map(\.contiguousBytes) == files.map(\.contiguousBytes))
+
+        let details = try roundTrip(try #require(session.details(of: id)))
+        #expect(details.magnetLink.hasPrefix("magnet:") && details.creator == "TorrentKitTests" && details.infoHashV2 == nil)
+
+        let pieces = try #require(session.pieces(of: id))
+        let pieces2 = try roundTrip(pieces)
+        #expect(pieces2.fill == pieces.fill && pieces2.priorities == pieces.priorities && pieces2.pieceCount == pieces.pieceCount)
+
+        #expect(TorrentStatus(jsonObject: ["name": "no id"]) == nil)
+        #expect(TorrentStatus(jsonObject: ["torrentID": 5]) == nil) // wrong type
+    }
 }

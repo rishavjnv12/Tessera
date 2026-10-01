@@ -123,6 +123,9 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: Magnet Link
             CFBundleURLSchemes: [magnet]
+        # Remote control: paired iPhones find this Mac on the local network.
+        NSBonjourServices: [_torrentremote._tcp]
+        NSLocalNetworkUsageDescription: Torrent lets your paired iPhone and iPad control downloads on this Mac.
     settings:
       base:
         PRODUCT_NAME: Torrent
@@ -174,6 +177,8 @@ targets:
           - CFBundleURLName: Magnet Link
             CFBundleURLSchemes: [magnet]
         NSSupportsLiveActivities: true
+        # Remote control: finds Macs running Torrent on the local network.
+        NSBonjourServices: [_torrentremote._tcp]
     settings:
       base:
         PRODUCT_NAME: Torrent
@@ -186,7 +191,7 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
-        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Torrent talks to your router to open a port so other peers can connect to you."
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Torrent finds your Mac to control its downloads, and talks to your router so peers can connect to you."
         INFOPLIST_KEY_UIFileSharingEnabled: YES
         INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -255,6 +260,24 @@ targets:
         SKIP_INSTALL: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
 
+  # Remote control: pairing, encryption and a loopback phone-to-Mac session.
+  RemoteTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - RemoteTests
+      - Shared/Remote
+      - Shared/TorrentBackend.swift
+      - TorrentKitTests/TorrentFixture.swift
+    dependencies:
+      - target: TorrentKit
+      - package: TorrentUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.RemoteTests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+
 schemes:
   TorrentKit:
     build:
@@ -263,6 +286,7 @@ schemes:
     test:
       targets:
         - TorrentKitTests
+        - RemoteTests
   torrentctl:
     build:
       targets:

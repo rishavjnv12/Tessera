@@ -41,16 +41,6 @@ lt::settings_pack TKSettingsPack(TKSessionSettings *settings);
            downloadsFromStart:(BOOL)downloadsFromStart;
 @end
 
-@interface TKPieceMap ()
-- (instancetype)initWithID:(NSString *)torrentID
-               pieceLength:(NSInteger)pieceLength
-                 totalSize:(int64_t)totalSize
-                      fill:(NSData *)fill
-                priorities:(NSData *)priorities
-              availability:(NSData *)availability
-        tracksAvailability:(BOOL)tracksAvailability;
-@end
-
 @interface TKPeer ()
 - (instancetype)initWithPeerInfo:(lt::peer_info const &)info;
 @end

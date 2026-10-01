@@ -20,3 +20,4 @@ FOUNDATION_EXPORT const unsigned char TorrentKitVersionString[];
 #import <TorrentKit/TKSessionSnapshot.h>
 #import <TorrentKit/TKTorrentEvent.h>
 #import <TorrentKit/TKSession.h>
+#import <TorrentKit/TKJSONCoding.h>

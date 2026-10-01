@@ -8,6 +8,13 @@ struct IOSSettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                if let mac = store.remote?.displayName {
+                    Section {
+                        Label("These settings apply to this iPhone’s own downloads. \(mac) has its own settings in Torrent on the Mac.",
+                              systemImage: "laptopcomputer")
+                            .font(.callout)
+                    }
+                }
                 Section {
                     Toggle("Keep screen awake while downloading", isOn: $store.settings.keepScreenAwake)
                     Toggle("Ask before adding", isOn: $store.settings.askBeforeAdding)

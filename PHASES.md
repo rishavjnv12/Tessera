@@ -113,7 +113,7 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 
 **Status:** Built: the sidebar filters with counts, a sortable table with native right-click menus (double-click shows the files in Finder), and search. The inspector shows the piece map, then Files, Peers, Trackers (add and remove) and Info (hashes, dates, location, magnet link). Adding works through the open panel, drag and drop, Finder ("Open With", double-click) and magnet links. An add sheet lets you choose the folder and files. The menus are File (⌘O, ⇧⌘O) and Torrent (pause ⌘. , resume ⌘/, all ⌥, remove ⌘⌫, Show in Finder ⇧⌘R, Download in Order). The Settings window has General, Transfers and Network tabs, saved and applied live. The app also has Dock progress with a count badge, finish notifications, and a menu bar item that can be turned off. The default download folder is **~/Torrent** (user choice, via a home-relative sandbox exception). Other folders use security-scoped bookmarks. New engine APIs: peers, trackers, details, preview and file priorities at add time. 3 new engine tests (19 total), 16 TorrentUI tests. Verified: the sandboxed app downloaded Sintel into ~/Torrent. Not yet verified by eye: the layout, menus, add sheet, Settings, Dock, notifications and menu bar.
 
-## Phase 6 — iPhone app (Priority 4) 🔄 Built, waiting for on-device check (2026-09-27)
+## Phase 6 — iPhone app (Priority 4) ✅ Done (2026-09-27, confirmed by the user)
 
 - List of torrents with compact progress, swipe actions (pause, delete), pull to add.
 - Detail screen: piece map card, files with priority menus, Download from Start action.
@@ -135,14 +135,24 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 
 Engine fix: iOS can move an app's data container after a reinstall or update. Saved torrent paths inside the old container are now moved to the new one and re-checked. Before this, a reinstall made Sintel download again. Still to check on a real iPhone: the Share Sheet, the Live Activity and Dynamic Island, the Files app, and suspension behavior.
 
-## Phase 7 — Remote control (iPhone controls Mac)
+## Phase 7 — Remote control (iPhone controls Mac) 🔄 Built, waiting for on-device check (2026-09-27)
 
 - Mac publishes a local network service via Bonjour, with a paired device key.
-- Small JSON over WebSocket API that mirrors TorrentKit's commands and snapshot stream.
+- Small JSON API over TCP that mirrors TorrentKit's commands and snapshot stream. The plan said WebSocket, but Network.framework's WebSocket client failed its handshake with host and Bonjour endpoints, so messages are length-prefixed.
 - iPhone engine picker: "This iPhone" or "<Mac name>". Same UI either way.
 - Optional later: remote access outside the home network via Tailscale or a relay.
 
 **Done when:** the iPhone shows the Mac's piece map live and can change priorities on it.
+
+**Status:** Built.
+- **Engine interface:** screens use `TorrentBackend`, which is either the local `TorrentSession` or `RemoteBackend`, a proxy that answers from the Mac's latest data and refreshes in the background.
+- **Mac server:** `RemoteServer` advertises `_torrentremote._tcp` over Bonjour. Remote control is on by default, can be turned off in Settings › Remote, and each device has to be paired and approved.
+- **Pairing:** X25519 key agreement. Both screens show a 6-digit code and the user clicks Allow on the Mac, so a device in the middle cannot pair. Long-term keys are kept in the Keychain.
+- **Sessions:** per-connection keys, one per direction, with ChaCha20-Poly1305 and increasing sequence numbers. Snapshots are sent once per second, plus piece-map changes for the open torrent.
+- **iPhone:** a device menu (This iPhone or a paired Mac), a pairing sheet showing the code, connection status, and automatic reconnection to the last Mac. Open and Show in Files are hidden for files that live on the Mac.
+- **Engine and tests:** JSON coding for the engine's value objects. 6 remote tests cover pairing, the live list and piece map, a priority change in both directions, pause, errors, reconnection, unknown devices, wrong keys, declined pairing, tampering and replay. The simulator phone paired with the real Mac app and showed its Sintel piece map live.
+
+Still to check on real devices: the local network permission prompts, and pairing over Wi-Fi.
 
 ## Phase 8 — Apple Watch
 

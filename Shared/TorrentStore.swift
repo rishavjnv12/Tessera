@@ -1,4 +1,5 @@
 import Foundation
+import Network
 import Observation
 import OSLog
 import TorrentKit
@@ -63,7 +64,25 @@ final class TorrentStore {
     private(set) var startError: String?
     /// Shown as an alert, then cleared.
     var lastError: String?
+    /// This device's own engine.
     private(set) var session: TorrentSession?
+    /// A Mac being controlled over the network, when chosen instead of this device.
+    private(set) var remote: RemoteBackend?
+    private(set) var remoteState: RemoteBackend.State?
+    /// The engine the screens show: the remote Mac if one is chosen, else this device.
+    var backend: (any TorrentBackend)? { remote ?? session }
+    var isRemote: Bool { remote != nil }
+    #if os(macOS)
+    /// Lets paired iPhones control this Mac.
+    private(set) var server: RemoteServer?
+    /// A phone waiting for the user to allow pairing.
+    var pairingRequest: PairingRequest?
+    let pairedDevices: any PeerStore = KeychainPeerStore(service: "io.github.rishavjnv12.Torrent.remote.devices")
+    #else
+    let pairedMacs: any PeerStore = KeychainPeerStore(service: "io.github.rishavjnv12.Torrent.remote.macs")
+    #endif
+    private var updatesTask: Task<Void, Never>?
+    private var eventsTask: Task<Void, Never>?
 
     /// Torrents waiting for the add sheet, first one shown.
     private(set) var pendingAdds: [PendingAdd] = []
@@ -77,6 +96,9 @@ final class TorrentStore {
             guard settings != oldValue else { return }
             settings.save()
             session?.applySettings(settings.sessionSettings)
+            #if os(macOS)
+            if settings.allowRemoteControl != oldValue.allowRemoteControl { updateRemoteServer() }
+            #endif
         }
     }
 
@@ -105,25 +127,100 @@ final class TorrentStore {
             self.session = session
             torrents = session.allTorrents()
             logger.notice("Engine started with \(self.torrents.count) torrents, libtorrent \(self.engineVersion, privacy: .public)")
-            Task { [weak self] in
-                for await snapshot in session.snapshots() {
-                    guard let self else { return }
-                    self.torrents = snapshot.torrents
-                    self.downloadRate = snapshot.downloadRate
-                    self.uploadRate = snapshot.uploadRate
-                    self.dhtNodes = snapshot.dhtNodes
-                }
-            }
-            Task { [weak self] in
-                for await event in session.events() where event.kind == .finished {
-                    self?.onFinished?(event)
-                }
-            }
+            follow(session)
+            #if os(macOS)
+            updateRemoteServer()
+            #endif
         } catch {
             startError = error.localizedDescription
             logger.error("Engine failed to start: \(error.localizedDescription, privacy: .public)")
         }
     }
+
+    /// Shows updates from `backend` from now on.
+    private func follow(_ backend: any TorrentBackend) {
+        updatesTask?.cancel()
+        eventsTask?.cancel()
+        let updates = backend.updates()
+        updatesTask = Task { [weak self] in
+            for await update in updates {
+                guard let self, !Task.isCancelled else { return }
+                self.torrents = update.torrents
+                self.downloadRate = update.downloadRate
+                self.uploadRate = update.uploadRate
+                self.dhtNodes = update.dhtNodes
+            }
+        }
+        let events = backend.finishedEvents()
+        eventsTask = Task { [weak self] in
+            for await event in events { self?.onFinished?(event) }
+        }
+    }
+
+    // MARK: Remote control
+
+    /// Shows and controls a paired Mac instead of this device.
+    func connect(to peer: PairedPeer, at endpoint: NWEndpoint) {
+        remote?.disconnect()
+        let remote = RemoteBackend(peer: peer, endpoint: endpoint)
+        remote.onStateChange = { [weak self] state in self?.remoteState = state }
+        remote.onError = { [weak self] message in self?.lastError = message }
+        self.remote = remote
+        remoteState = .connecting
+        torrents = []
+        downloadRate = 0
+        uploadRate = 0
+        follow(remote)
+        remote.connect()
+        UserDefaults.standard.set(peer.id, forKey: "remoteMacID")
+    }
+
+    /// Back to this device's own engine.
+    func useThisDevice() {
+        remote?.disconnect()
+        remote = nil
+        remoteState = nil
+        UserDefaults.standard.removeObject(forKey: "remoteMacID")
+        guard let session else { return }
+        torrents = session.allTorrents()
+        follow(session)
+    }
+
+    /// The Mac chosen last time, to reconnect when it shows up on the network.
+    var lastRemoteMacID: String? { UserDefaults.standard.string(forKey: "remoteMacID") }
+
+    #if os(macOS)
+    private func updateRemoteServer() {
+        guard let session else { return }
+        if settings.allowRemoteControl, server == nil {
+            let server = RemoteServer(session: session, peers: pairedDevices, serverID: Self.remoteServerID,
+                                      serverName: Host.current().localizedName ?? String(localized: "Mac"))
+            server.onPairingRequest = { [weak self] request in
+                #if DEBUG
+                if UserDefaults.standard.bool(forKey: "autoApprovePairing") { return request.respond(true) }
+                #endif
+                self?.pairingRequest = request
+            }
+            do {
+                try server.start()
+                self.server = server
+            } catch {
+                logger.error("Remote control unavailable: \(error.localizedDescription, privacy: .public)")
+            }
+        } else if !settings.allowRemoteControl, let server {
+            server.stop()
+            self.server = nil
+        }
+    }
+
+    private static var remoteServerID: String {
+        let key = "remoteServerID"
+        if let id = UserDefaults.standard.string(forKey: key) { return id }
+        let id = UUID().uuidString
+        UserDefaults.standard.set(id, forKey: key)
+        return id
+    }
+    #endif
 
     func status(of id: String) -> TorrentStatus? {
         torrents.first { $0.id == id }
@@ -198,7 +295,7 @@ final class TorrentStore {
     func accept(_ add: PendingAdd, folder: URL, filePriorities: [Int]?, start: Bool) -> String? {
         pendingAdds.removeAll { $0.id == add.id }
         let options = AddTorrentOptions()
-        options.savePath = folder
+        options.savePath = isRemote ? nil : folder // a Mac saves into its own download folder
         options.startPaused = !start
         options.filePriorities = filePriorities.map { $0.map(NSNumber.init(value:)) }
         let id: String? = switch add.source {
@@ -218,7 +315,7 @@ final class TorrentStore {
     func addTorrent(fileAt url: URL) -> String? {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-        return perform { try $0.addTorrent(fileAt: url, options: nil) }
+        return perform { try $0.addTorrent(data: try Data(contentsOf: url), options: nil) }
     }
 
     @discardableResult
@@ -251,17 +348,17 @@ final class TorrentStore {
 
     @discardableResult
     func setPriority(_ priority: PiecePriority, files: Set<Int>, torrent id: String) -> Bool {
-        perform { try $0.setPriority(priority.rawValue, files: files, torrent: id) } != nil
+        perform { try $0.setFilePriority(priority.rawValue, files: files.sorted(), torrent: id) } != nil
     }
 
     @discardableResult
     func setPriority(_ priority: PiecePriority, pieces: ClosedRange<Int>, torrent id: String) -> Bool {
-        perform { try $0.setPriority(priority.rawValue, pieces: pieces, torrent: id) } != nil
+        perform { try $0.setPiecePriority(priority.rawValue, pieces: pieces, torrent: id) } != nil
     }
 
     /// Runs any engine action, reporting errors like the other actions. Returns false on failure.
     @discardableResult
-    func run(_ action: (TorrentSession) throws -> Void) -> Bool {
+    func run(_ action: (any TorrentBackend) throws -> Void) -> Bool {
         perform(action) != nil
     }
 
@@ -287,19 +384,22 @@ final class TorrentStore {
     func saveResumeData() { session?.saveResumeData() }
 
     func shutdown() {
+        remote?.disconnect()
+        #if os(macOS)
+        server?.stop()
+        #endif
         session?.shutdown()
     }
 
     @discardableResult
-    private func perform<T>(_ action: (TorrentSession) throws -> T) -> T? {
-        guard let session else { return nil }
+    private func perform<T>(_ action: (any TorrentBackend) throws -> T) -> T? {
+        guard let backend else { return nil }
         do {
-            let result = try action(session)
-            torrents = session.allTorrents() // reflect the change before the next snapshot
+            let result = try action(backend)
+            if !backend.isRemote { torrents = backend.allTorrents() } // reflect the change before the next snapshot
             return result
         } catch {
             lastError = error.localizedDescription
-            torrents = session.allTorrents()
             return nil
         }
     }
