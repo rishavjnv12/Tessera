@@ -1,5 +1,5 @@
 import SwiftUI
-import TorrentKit
+import TesseraKit
 
 struct IOSSettingsView: View {
     @Bindable var store: TorrentStore
@@ -10,7 +10,7 @@ struct IOSSettingsView: View {
             Form {
                 if let mac = store.remote?.displayName {
                     Section {
-                        Label("These settings apply to this iPhone’s own downloads. \(mac) has its own settings in Torrent on the Mac.",
+                        Label("These settings apply to this iPhone’s own downloads. \(mac) has its own settings in Tessera on the Mac.",
                               systemImage: "laptopcomputer")
                             .font(.callout)
                     }
@@ -19,7 +19,7 @@ struct IOSSettingsView: View {
                     Toggle("Keep screen awake while downloading", isOn: $store.settings.keepScreenAwake)
                     Toggle("Ask before adding", isOn: $store.settings.askBeforeAdding)
                 } footer: {
-                    Text("iOS pauses downloads soon after Torrent leaves the screen. Keeping the screen awake lets long downloads finish.")
+                    Text("iOS pauses downloads soon after Tessera leaves the screen. Keeping the screen awake lets long downloads finish.")
                 }
                 Section("Speed limits") {
                     limitRow("Download", value: $store.settings.downloadLimitKB)

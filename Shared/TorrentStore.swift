@@ -2,8 +2,8 @@ import Foundation
 import Network
 import Observation
 import OSLog
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// A torrent waiting in the add sheet for the user to choose a folder and files.
 struct PendingAdd: Identifiable {
@@ -77,9 +77,9 @@ final class TorrentStore {
     private(set) var server: RemoteServer?
     /// A phone waiting for the user to allow pairing.
     var pairingRequest: PairingRequest?
-    let pairedDevices: any PeerStore = KeychainPeerStore(service: "io.github.rishavjnv12.Torrent.remote.devices")
+    let pairedDevices: any PeerStore = KeychainPeerStore(service: "io.github.rishavjnv12.Tessera.remote.devices")
     #else
-    let pairedMacs: any PeerStore = KeychainPeerStore(service: "io.github.rishavjnv12.Torrent.remote.macs")
+    let pairedMacs: any PeerStore = KeychainPeerStore(service: "io.github.rishavjnv12.Tessera.remote.macs")
     #endif
     private var updatesTask: Task<Void, Never>?
     private var eventsTask: Task<Void, Never>?
@@ -103,7 +103,7 @@ final class TorrentStore {
     }
 
     let engineVersion = BuildInfo.libtorrentVersion
-    private let logger = Logger(subsystem: "io.github.rishavjnv12.Torrent", category: "store")
+    private let logger = Logger(subsystem: "io.github.rishavjnv12.Tessera", category: "store")
 
     init() {
         settings = AppSettings.load()
@@ -114,7 +114,7 @@ final class TorrentStore {
     }
 
     static var stateDirectory: URL {
-        URL.applicationSupportDirectory.appending(path: "Torrent/State", directoryHint: .isDirectory)
+        URL.applicationSupportDirectory.appending(path: "Tessera/State", directoryHint: .isDirectory)
     }
 
     var downloadFolder: URL { DownloadFolders.folder(for: settings) }

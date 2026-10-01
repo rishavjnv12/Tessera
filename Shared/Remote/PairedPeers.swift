@@ -20,7 +20,7 @@ nonisolated protocol PeerStore: AnyObject, Sendable {
 nonisolated final class KeychainPeerStore: PeerStore, @unchecked Sendable {
     private let service: String
 
-    /// "io.github.rishavjnv12.Torrent.remote.devices" on the Mac, "io.github.rishavjnv12.Torrent.remote.macs" on iPhone.
+    /// "io.github.rishavjnv12.Tessera.remote.devices" on the Mac, "io.github.rishavjnv12.Tessera.remote.macs" on iPhone.
     init(service: String) {
         self.service = service
     }
@@ -32,7 +32,7 @@ nonisolated final class KeychainPeerStore: PeerStore, @unchecked Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: peer.id,
-            kSecAttrLabel as String: "Torrent remote: \(peer.name)",
+            kSecAttrLabel as String: "Tessera remote: \(peer.name)",
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecValueData as String: data,
         ]
@@ -90,7 +90,7 @@ nonisolated final class MemoryPeerStore: PeerStore, @unchecked Sendable {
 
 /// This device's identity for remote control.
 nonisolated enum RemoteIdentity {
-    static let serviceType = "_torrentremote._tcp"
+    static let serviceType = "_tesseraremote._tcp"
 
     static var deviceID: String {
         let key = "remoteDeviceID"

@@ -3,15 +3,15 @@ import OSLog
 
 /// Where downloads go, and (on Mac) keeping access to folders outside the sandbox.
 enum DownloadFolders {
-    /// ~/Torrent on Mac, the app's Documents folder on iPhone and iPad. Created if missing.
+    /// ~/Tessera on Mac, the app's Documents folder on iPhone and iPad. Created if missing.
     static var defaultFolder: URL {
         #if os(macOS)
         // Inside the sandbox, the home directory APIs return the app's container. The real home
-        // comes from the user database; the entitlement allows ~/Torrent/.
+        // comes from the user database; the entitlement allows ~/Tessera/.
         let home = getpwuid(getuid()).flatMap { String(validatingCString: $0.pointee.pw_dir) } ?? NSHomeDirectory()
-        let folder = URL(filePath: home, directoryHint: .isDirectory).appending(path: "Torrent", directoryHint: .isDirectory)
+        let folder = URL(filePath: home, directoryHint: .isDirectory).appending(path: "Tessera", directoryHint: .isDirectory)
         #else
-        // The app's own folder, shown in Files as On My iPhone › Torrent.
+        // The app's own folder, shown in Files as On My iPhone › Tessera.
         let folder = URL.documentsDirectory
         #endif
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -31,7 +31,7 @@ enum DownloadFolders {
 /// reopens them at launch so torrents saved there keep working after a relaunch.
 enum FolderAccess {
     private static let key = "folderBookmarks"
-    private static let logger = Logger(subsystem: "io.github.rishavjnv12.Torrent", category: "folders")
+    private static let logger = Logger(subsystem: "io.github.rishavjnv12.Tessera", category: "folders")
 
     /// Call once at launch, before the engine starts.
     static func restoreAll() {

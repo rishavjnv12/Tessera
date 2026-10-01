@@ -1,6 +1,6 @@
 import Foundation
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// One refresh of the torrent list, from the local engine or a remote Mac.
 struct BackendUpdate: Sendable {

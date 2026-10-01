@@ -1,6 +1,6 @@
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 import UniformTypeIdentifiers
 
 enum SidebarItem: Hashable {
@@ -276,7 +276,7 @@ struct MainWindow: View {
 
     private var pairingTitle: String {
         guard let request = store.pairingRequest else { return "" }
-        return String(localized: "Allow “\(request.deviceName)” to control Torrent?")
+        return String(localized: "Allow “\(request.deviceName)” to control Tessera?")
     }
 
     private var pairingBinding: Binding<Bool> {

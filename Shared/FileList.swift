@@ -1,6 +1,6 @@
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 extension TorrentFile {
     /// Bytes from the start needed before offering to open a file that is still downloading.

@@ -1,8 +1,8 @@
 import CryptoKit
 import Foundation
 import Network
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// A phone asking to pair, waiting for the user's decision on the Mac.
 struct PairingRequest: Identifiable {

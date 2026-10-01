@@ -1,7 +1,7 @@
 import ActivityKit
 import Foundation
 import OSLog
-import TorrentKit
+import TesseraKit
 
 /// Keeps one Live Activity in step with the downloads: started when something downloads while
 /// the app is open, marked paused when the app leaves the screen, ended when everything is done.
@@ -10,7 +10,7 @@ final class LiveActivityController {
     private var activity: Activity<DownloadActivityAttributes>?
     private var lastState: DownloadActivityAttributes.ContentState?
     private var lastUpdate = Date.distantPast
-    private let logger = Logger(subsystem: "io.github.rishavjnv12.Torrent", category: "live-activity")
+    private let logger = Logger(subsystem: "io.github.rishavjnv12.Tessera", category: "live-activity")
 
     init() {
         // Activities left over from a previous run show stale numbers; end them.

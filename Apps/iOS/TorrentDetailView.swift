@@ -1,7 +1,7 @@
 import QuickLook
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 enum DetailSection: String, CaseIterable, Identifiable {
     case files, peers, trackers, info

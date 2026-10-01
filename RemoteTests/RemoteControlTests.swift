@@ -2,8 +2,8 @@ import CryptoKit
 import Foundation
 import Network
 import Testing
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// The phone side and the Mac side talking over 127.0.0.1, with real engines.
 @MainActor

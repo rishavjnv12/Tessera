@@ -2,7 +2,7 @@ import Network
 import SwiftUI
 import UIKit
 
-/// Finds Macs running Torrent nearby and pairs with one: both screens show the same code, and
+/// Finds Macs running Tessera nearby and pairs with one: both screens show the same code, and
 /// the user allows it on the Mac.
 struct PairMacSheet: View {
     var store: TorrentStore
@@ -39,7 +39,7 @@ struct PairMacSheet: View {
                     if browser.macs.isEmpty {
                         HStack(spacing: 10) {
                             ProgressView()
-                            Text("Looking for Macs running Torrent…").foregroundStyle(.secondary)
+                            Text("Looking for Macs running Tessera…").foregroundStyle(.secondary)
                         }
                     }
                     ForEach(browser.macs) { mac in
@@ -50,7 +50,7 @@ struct PairMacSheet: View {
                         }
                     }
                 } footer: {
-                    Text("On the Mac, open Torrent and keep Settings › Remote › “Allow iPhone and iPad to control this Mac” on. Both devices need to be on the same network.")
+                    Text("On the Mac, open Tessera and keep Settings › Remote › “Allow iPhone and iPad to control this Mac” on. Both devices need to be on the same network.")
                 }
             }
         case .pairing(let mac, let code):

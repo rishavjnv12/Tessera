@@ -3,7 +3,7 @@ import SwiftUI
 import WidgetKit
 
 @main
-struct TorrentWidgets: WidgetBundle {
+struct TesseraWidgets: WidgetBundle {
     var body: some Widget {
         DownloadLiveActivity()
     }
@@ -89,7 +89,7 @@ private struct DetailLine: View {
                 Spacer()
                 if let eta = state.etaText { Text("\(eta) left") }
             case .paused:
-                Label("Paused. Open Torrent to continue.", systemImage: "pause.fill")
+                Label("Paused. Open Tessera to continue.", systemImage: "pause.fill")
                 Spacer()
             case .finished:
                 Label("Finished", systemImage: "checkmark.circle.fill")

@@ -1,5 +1,5 @@
 import SwiftUI
-import TorrentKit
+import TesseraKit
 
 struct TorrentRow: View {
     var torrent: TorrentStatus

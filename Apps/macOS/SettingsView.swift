@@ -1,5 +1,5 @@
 import SwiftUI
-import TorrentKit
+import TesseraKit
 
 struct SettingsView: View {
     @Bindable var store: TorrentStore
@@ -31,7 +31,7 @@ private struct GeneralSettings: View {
                             Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([store.downloadFolder]) }
                             Button("Choose…", action: chooseFolder)
                             if store.settings.downloadFolderPath != nil {
-                                Button("Use ~/Torrent") { store.settings.downloadFolderPath = nil }
+                                Button("Use ~/Tessera") { store.settings.downloadFolderPath = nil }
                             }
                         }
                         .controlSize(.small)

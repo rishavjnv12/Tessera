@@ -1,4 +1,4 @@
-# Torrent — Build Phases
+# Tessera — Build Phases
 
 Native torrent client for macOS, iPhone and Apple Watch, written in SwiftUI.
 
@@ -15,11 +15,11 @@ Native torrent client for macOS, iPhone and Apple Watch, written in SwiftUI.
 ```sh
 brew install xcodegen cmake
 Scripts/build-libtorrent.sh      # ~15 min first time; creates Vendor/ (cached afterwards)
-xcodegen generate                # regenerate Torrent.xcodeproj after editing project.yml
-open Torrent.xcodeproj           # schemes: Torrent-macOS, Torrent-iOS
+xcodegen generate                # regenerate Tessera.xcodeproj after editing project.yml
+open Tessera.xcodeproj           # schemes: Tessera-macOS, Tessera-iOS
 ```
 
-Layout: `Apps/macOS`, `Apps/iOS` (app entry points), `Shared/` (code and assets used by both apps), `TorrentKit/` (Objective-C++ engine framework with a Swift streams layer), `TorrentKitTests/` (offline engine tests), `Tools/torrentctl` (command-line harness), `Packages/TorrentUI` (shared SwiftUI views and the piece map, with its own tests: `swift test`), `Vendor/` (generated native libraries, not committed).
+Layout: `Apps/macOS`, `Apps/iOS` (app entry points), `Shared/` (code and assets used by both apps), `TesseraKit/` (Objective-C++ engine framework with a Swift streams layer), `TesseraKitTests/` (offline engine tests), `Tools/tesseractl` (command-line harness), `Packages/TesseraUI` (shared SwiftUI views and the piece map, with its own tests: `swift test`), `Vendor/` (generated native libraries, not committed).
 
 ---
 
@@ -28,8 +28,8 @@ Layout: `Apps/macOS`, `Apps/iOS` (app entry points), `Shared/` (code and assets 
 | Topic | Decision | Why |
 |---|---|---|
 | Engine | **libtorrent-rasterbar 2.x** (C++), built as an XCFramework | Mature. Has per-piece priority, per-file priority, sequential mode, piece deadlines and full piece bitfields. That covers priorities 1–3 directly. |
-| Bridge | Thin Objective-C++ facade (`TorrentKit`) that exposes plain Swift-friendly types | Keeps Boost and libtorrent headers away from Swift. Swift C++ interop is an option later. |
-| Targets | `Torrent-macOS`, `Torrent-iOS`, `Torrent-watchOS`, `TorrentWidgets` (iOS + watch), shared `TorrentKit` framework and `TorrentUI` Swift package | Separate targets per platform, shared code for engine, models and piece map view. |
+| Bridge | Thin Objective-C++ facade (`TesseraKit`) that exposes plain Swift-friendly types | Keeps Boost and libtorrent headers away from Swift. Swift C++ interop is an option later. |
+| Targets | `Tessera-macOS`, `Tessera-iOS`, `Tessera-watchOS`, `TesseraWidgets` (iOS + watch), shared `TesseraKit` framework and `TesseraUI` Swift package | Separate targets per platform, shared code for engine, models and piece map view. |
 | Mac role | Primary engine. Runs 24/7, can be controlled remotely. | macOS has no background limits. |
 | iPhone role | Runs its own engine while in foreground **and** can act as a remote for the Mac. | iOS suspends apps in the background, so long downloads belong on the Mac. |
 | Watch role | Viewer and remote only. No engine. | watchOS cannot run a torrent session. |
@@ -39,16 +39,16 @@ Layout: `Apps/macOS`, `Apps/iOS` (app entry points), `Shared/` (code and assets 
 
 ## Phase 0 — Project setup and engine build ✅ Done (2026-09-27)
 
-- Split the current single multiplatform target into `Torrent-macOS` and `Torrent-iOS`. Drop visionOS from supported platforms.
+- Split the current single multiplatform target into `Tessera-macOS` and `Tessera-iOS`. Drop visionOS from supported platforms.
 - Script (`Scripts/build-libtorrent.sh`) that builds libtorrent + Boost + OpenSSL for macOS (arm64, x86_64), iOS device and iOS simulator, and packages `libtorrent.xcframework`.
-- Add `TorrentKit` framework target that links the XCFramework.
-- Shared `TorrentUI` local Swift package for views used on both Mac and iPhone.
+- Add `TesseraKit` framework target that links the XCFramework.
+- Shared `TesseraUI` local Swift package for views used on both Mac and iPhone.
 
 **Done when:** both app targets build and launch and print the libtorrent version.
 
 **Result:** libtorrent 2.1.2, Boost 1.92, OpenSSL 3.5.8. WebTorrent is off for now. Mac app is universal (arm64 + x86_64). iPhone device and simulator builds work. Both apps pass a self-test that hashes with libtorrent and starts and stops a session.
 
-## Phase 1 — Engine core (TorrentKit) ✅ Done (2026-09-27)
+## Phase 1 — Engine core (TesseraKit) ✅ Done (2026-09-27)
 
 - Session lifecycle: start, stop, settings (download folder, ports, rate limits, DHT, LSD, PEX, UPnP).
 - Add torrent from `.torrent` file and from magnet link. Remove with or without data.
@@ -59,11 +59,11 @@ Layout: `Apps/macOS`, `Apps/iOS` (app entry points), `Shared/` (code and assets 
 
 **Done when:** a Mac command-line test harness downloads a public test torrent (e.g. a Linux ISO) and resumes after restart.
 
-**Result:** `TorrentSession` (Objective-C++ `TKSession`) with async `snapshots()` and `events()` streams. Progress is saved to `<id>.fastresume` files in the state folder every 30 seconds, on pause, metadata and completion, and on shutdown. 9 offline tests (`TorrentKit` scheme) cover seeding, file-to-piece mapping, errors, magnets, pause, restart, removal and a local seed-to-leech download that stops and resumes. The `torrentctl` harness downloaded Sintel (129 MB) over the internet, stopped at 25 s, and finished from 80.8% on the next run.
+**Result:** `TorrentSession` (Objective-C++ `TKSession`) with async `snapshots()` and `events()` streams. Progress is saved to `<id>.fastresume` files in the state folder every 30 seconds, on pause, metadata and completion, and on shutdown. 9 offline tests (`TesseraKit` scheme) cover seeding, file-to-piece mapping, errors, magnets, pause, restart, removal and a local seed-to-leech download that stops and resumes. The `tesseractl` harness downloaded Sintel (129 MB) over the internet, stopped at 25 s, and finished from 80.8% on the next run.
 
 ```sh
-torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --files sintel.torrent   # Ctrl-C to stop
-torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-done             # continues
+tesseractl --state ~/.tesseractl/state --save ~/Downloads/tesseractl --files sintel.torrent   # Ctrl-C to stop
+tesseractl --state ~/.tesseractl/state --save ~/Downloads/tesseractl --until-done             # continues
 ```
 
 ## Phase 2 — Piece map (Priority 1) ✅ Done (2026-09-27)
@@ -76,7 +76,7 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 
 **Done when:** a 20,000+ piece torrent animates smoothly at 60 fps on Mac and iPhone.
 
-**Result:** `PieceMapCard` and `PieceMapView` in `Packages/TorrentUI` offer Progress, Availability and Priority views, zoom buttons, pinch to zoom, hover or tap details, and outlines for the selected file. The engine call `TorrentSession.pieces(of:)` supplies the data. The app's `PieceMapFeed` polls it off the main thread once per second and passes only the changed pieces. The cell count is capped by the view's area, and each redraw is a few batched fills, so Metal was not needed. Measured in optimized builds with CPU rasterization: about 0.5 ms per full redraw at 25,000 and 100,000 pieces, and about 3 ms when zoomed to 25,000 individual cells. Only downloading cells animate, in a small overlay. Frame rate has not been measured on a physical iPhone yet. Both apps have a minimal torrent list and detail screen to host the map, which Phases 5 and 6 will replace. Debug builds add a "Piece Map Demo" with 25,000 simulated pieces, plus the launch options `-openDemo YES` and `-addTorrent <magnet or path>`.
+**Result:** `PieceMapCard` and `PieceMapView` in `Packages/TesseraUI` offer Progress, Availability and Priority views, zoom buttons, pinch to zoom, hover or tap details, and outlines for the selected file. The engine call `TorrentSession.pieces(of:)` supplies the data. The app's `PieceMapFeed` polls it off the main thread once per second and passes only the changed pieces. The cell count is capped by the view's area, and each redraw is a few batched fills, so Metal was not needed. Measured in optimized builds with CPU rasterization: about 0.5 ms per full redraw at 25,000 and 100,000 pieces, and about 3 ms when zoomed to 25,000 individual cells. Only downloading cells animate, in a small overlay. Frame rate has not been measured on a physical iPhone yet. Both apps have a minimal torrent list and detail screen to host the map, which Phases 5 and 6 will replace. Debug builds add a "Piece Map Demo" with 25,000 simulated pieces, plus the launch options `-openDemo YES` and `-addTorrent <magnet or path>`.
 
 ## Phase 3 — Priorities (Priority 2) ✅ Done (2026-09-27)
 
@@ -87,7 +87,7 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 
 **Done when:** setting a range to Highest makes those pieces fill first, visibly, on the piece map.
 
-**Result:** Four levels everywhere: Highest (7), Normal (4), Lowest (1) and Don't Download (0). Files take multi-select plus a Priority menu or context menu, and rows show priority badges. On the piece map, drag on Mac or touch and hold then drag on iPhone to select a run of pieces. Handles adjust the ends, and a bar under the map offers Priority and Clear. Changes show immediately and are confirmed from the engine a moment later. The engine API is `setPriority(_:files:torrent:)` and `setPriority(_:pieces:torrent:)`. libtorrent resets every hand-set piece whenever a file priority changes, so TorrentKit re-applies hand-set pieces outside the changed files once libtorrent confirms the change. Priorities persist across restarts. Complete (seeding) torrents reject changes, because libtorrent ignores them. 4 new engine tests (14 total). In the ordering test, other pieces were 2–19% done when the Highest range reached 50%. On the real Sintel torrent in the iPhone simulator, the Highest range filled first. **Known limit:** HTTP web seeds download long sequential runs and can fill normal pieces alongside a Highest range. BitTorrent peers follow priorities. Debug launch option: `-highestPieces <first>-<last>` together with `-addTorrent`. On Mac the Priority menus and the file right-click menu are native AppKit menus, because SwiftUI-built menu items collapsed to a narrow strip on hover.
+**Result:** Four levels everywhere: Highest (7), Normal (4), Lowest (1) and Don't Download (0). Files take multi-select plus a Priority menu or context menu, and rows show priority badges. On the piece map, drag on Mac or touch and hold then drag on iPhone to select a run of pieces. Handles adjust the ends, and a bar under the map offers Priority and Clear. Changes show immediately and are confirmed from the engine a moment later. The engine API is `setPriority(_:files:torrent:)` and `setPriority(_:pieces:torrent:)`. libtorrent resets every hand-set piece whenever a file priority changes, so TesseraKit re-applies hand-set pieces outside the changed files once libtorrent confirms the change. Priorities persist across restarts. Complete (seeding) torrents reject changes, because libtorrent ignores them. 4 new engine tests (14 total). In the ordering test, other pieces were 2–19% done when the Highest range reached 50%. On the real Sintel torrent in the iPhone simulator, the Highest range filled first. **Known limit:** HTTP web seeds download long sequential runs and can fill normal pieces alongside a Highest range. BitTorrent peers follow priorities. Debug launch option: `-highestPieces <first>-<last>` together with `-addTorrent`. On Mac the Priority menus and the file right-click menu are native AppKit menus, because SwiftUI-built menu items collapsed to a narrow strip on hover.
 
 ## Phase 4 — Download from start (Priority 3) ✅ Done (2026-09-27)
 
@@ -98,7 +98,7 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 
 **Done when:** a video file inside a multi-file torrent becomes playable from the start well before it finishes.
 
-**Result:** "Download from Start" means this file first, in order. Other files pause, with their priorities saved. The torrent switches to sequential order. Deadlines keep about 1 MB after the first missing piece and the file's last megabyte urgent, so a slow peer cannot hold up the front. Once the rest of the file is urgent, everything returns to how it was. This survives a restart. The torrent also has a "Download in Order" toggle. Files report bytes readable from the start (`contiguousBytes`) and whether their end is present (`hasEnd`). The app shows a banner with Stop and Open, a readiness bar on the file, and Open (Quick Look on iPhone, default app on Mac) once 8 MB from the start and the end are present. Measured on the real Sintel torrent (129 MB, `torrentctl --from-start 5`): AVFoundation loaded the partial MP4 and decoded a frame at 14–29% downloaded across the final runs. What was tried and why it lost is recorded in TKSession.mm: deadlines on a large window, priority 7 on the file (libtorrent picks priority-7 pieces rarest-first), and priorities 5–6 (not strict). Engine settings changed for this: web-seed requests are capped at 2 MiB (was 16 MiB), and a check re-raises pieces libtorrent left at priority 0 after a file-priority restore. 2 new engine tests (16 total). Test lesson: throttle the sending peer, not the receiver, because a receive limit over loopback lets socket buffers fill and deliver out of order. Debug launch option: `-downloadFromStart <file index>`.
+**Result:** "Download from Start" means this file first, in order. Other files pause, with their priorities saved. The torrent switches to sequential order. Deadlines keep about 1 MB after the first missing piece and the file's last megabyte urgent, so a slow peer cannot hold up the front. Once the rest of the file is urgent, everything returns to how it was. This survives a restart. The torrent also has a "Download in Order" toggle. Files report bytes readable from the start (`contiguousBytes`) and whether their end is present (`hasEnd`). The app shows a banner with Stop and Open, a readiness bar on the file, and Open (Quick Look on iPhone, default app on Mac) once 8 MB from the start and the end are present. Measured on the real Sintel torrent (129 MB, `tesseractl --from-start 5`): AVFoundation loaded the partial MP4 and decoded a frame at 14–29% downloaded across the final runs. What was tried and why it lost is recorded in TKSession.mm: deadlines on a large window, priority 7 on the file (libtorrent picks priority-7 pieces rarest-first), and priorities 5–6 (not strict). Engine settings changed for this: web-seed requests are capped at 2 MiB (was 16 MiB), and a check re-raises pieces libtorrent left at priority 0 after a file-priority restore. 2 new engine tests (16 total). Test lesson: throttle the sending peer, not the receiver, because a receive limit over loopback lets socket buffers fill and deliver out of order. Debug launch option: `-downloadFromStart <file index>`.
 
 ## Phase 5 — Mac app (Priority 4) 🔄 Built, waiting for visual review (2026-09-27)
 
@@ -111,7 +111,7 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 
 **Done when:** the app feels like a stock Apple app next to Finder and Mail.
 
-**Status:** Built: the sidebar filters with counts, a sortable table with native right-click menus (double-click shows the files in Finder), and search. The inspector shows the piece map, then Files, Peers, Trackers (add and remove) and Info (hashes, dates, location, magnet link). Adding works through the open panel, drag and drop, Finder ("Open With", double-click) and magnet links. An add sheet lets you choose the folder and files. The menus are File (⌘O, ⇧⌘O) and Torrent (pause ⌘. , resume ⌘/, all ⌥, remove ⌘⌫, Show in Finder ⇧⌘R, Download in Order). The Settings window has General, Transfers and Network tabs, saved and applied live. The app also has Dock progress with a count badge, finish notifications, and a menu bar item that can be turned off. The default download folder is **~/Torrent** (user choice, via a home-relative sandbox exception). Other folders use security-scoped bookmarks. New engine APIs: peers, trackers, details, preview and file priorities at add time. 3 new engine tests (19 total), 16 TorrentUI tests. Verified: the sandboxed app downloaded Sintel into ~/Torrent. Not yet verified by eye: the layout, menus, add sheet, Settings, Dock, notifications and menu bar.
+**Status:** Built: the sidebar filters with counts, a sortable table with native right-click menus (double-click shows the files in Finder), and search. The inspector shows the piece map, then Files, Peers, Trackers (add and remove) and Info (hashes, dates, location, magnet link). Adding works through the open panel, drag and drop, Finder ("Open With", double-click) and magnet links. An add sheet lets you choose the folder and files. The menus are File (⌘O, ⇧⌘O) and Torrent (pause ⌘. , resume ⌘/, all ⌥, remove ⌘⌫, Show in Finder ⇧⌘R, Download in Order). The Settings window has General, Transfers and Network tabs, saved and applied live. The app also has Dock progress with a count badge, finish notifications, and a menu bar item that can be turned off. The default download folder is **~/Tessera** (user choice, via a home-relative sandbox exception). Other folders use security-scoped bookmarks. New engine APIs: peers, trackers, details, preview and file priorities at add time. 3 new engine tests (19 total), 16 TesseraUI tests. Verified: the sandboxed app downloaded Sintel into ~/Tessera. Not yet verified by eye: the layout, menus, add sheet, Settings, Dock, notifications and menu bar.
 
 ## Phase 6 — iPhone app (Priority 4) ✅ Done (2026-09-27, confirmed by the user)
 
@@ -129,16 +129,16 @@ torrentctl --state ~/.torrentctl/state --save ~/Downloads/torrentctl --until-don
 - A detail screen with the piece map and Files, Peers, Trackers and Info sections.
 - An add sheet for choosing files, and a Settings screen with Keep Screen Awake (off by default), limits, queue and peer discovery.
 - .torrent files and magnet links open the app, via `onOpenURL` and document and URL types.
-- A **Share extension** (`TorrentShare`) writes to the App Group inbox (`group.io.github.rishavjnv12.Torrent`), and the app adds those torrents when it becomes active. Tested by dropping a magnet link into the inbox.
-- A **Live Activity** with Dynamic Island (`TorrentWidgets`): started while downloading, marked paused when the app leaves the screen, ended when done. The log confirms it is created and updated. Its look is not checked, because simulator screenshots leave out the island.
-- Leaving the screen saves progress inside a background task. Downloads land in the app's Documents folder (Files: On My iPhone › Torrent).
+- A **Share extension** (`TesseraShare`) writes to the App Group inbox (`group.io.github.rishavjnv12.Tessera`), and the app adds those torrents when it becomes active. Tested by dropping a magnet link into the inbox.
+- A **Live Activity** with Dynamic Island (`TesseraWidgets`): started while downloading, marked paused when the app leaves the screen, ended when done. The log confirms it is created and updated. Its look is not checked, because simulator screenshots leave out the island.
+- Leaving the screen saves progress inside a background task. Downloads land in the app's Documents folder (Files: On My iPhone › Tessera).
 
 Engine fix: iOS can move an app's data container after a reinstall or update. Saved torrent paths inside the old container are now moved to the new one and re-checked. Before this, a reinstall made Sintel download again. Still to check on a real iPhone: the Share Sheet, the Live Activity and Dynamic Island, the Files app, and suspension behavior.
 
 ## Phase 7 — Remote control (iPhone controls Mac) 🔄 Built, waiting for on-device check (2026-09-27)
 
 - Mac publishes a local network service via Bonjour, with a paired device key.
-- Small JSON API over TCP that mirrors TorrentKit's commands and snapshot stream. The plan said WebSocket, but Network.framework's WebSocket client failed its handshake with host and Bonjour endpoints, so messages are length-prefixed.
+- Small JSON API over TCP that mirrors TesseraKit's commands and snapshot stream. The plan said WebSocket, but Network.framework's WebSocket client failed its handshake with host and Bonjour endpoints, so messages are length-prefixed.
 - iPhone engine picker: "This iPhone" or "<Mac name>". Same UI either way.
 - Optional later: remote access outside the home network via Tailscale or a relay.
 
@@ -146,7 +146,7 @@ Engine fix: iOS can move an app's data container after a reinstall or update. Sa
 
 **Status:** Built.
 - **Engine interface:** screens use `TorrentBackend`, which is either the local `TorrentSession` or `RemoteBackend`, a proxy that answers from the Mac's latest data and refreshes in the background.
-- **Mac server:** `RemoteServer` advertises `_torrentremote._tcp` over Bonjour. Remote control is on by default, can be turned off in Settings › Remote, and each device has to be paired and approved.
+- **Mac server:** `RemoteServer` advertises `_tesseraremote._tcp` over Bonjour. Remote control is on by default, can be turned off in Settings › Remote, and each device has to be paired and approved.
 - **Pairing:** X25519 key agreement. Both screens show a 6-digit code and the user clicks Allow on the Mac, so a device in the middle cannot pair. Long-term keys are kept in the Keychain.
 - **Sessions:** per-connection keys, one per direction, with ChaCha20-Poly1305 and increasing sequence numbers. Snapshots are sent once per second, plus piece-map changes for the open torrent.
 - **iPhone:** a device menu (This iPhone or a paired Mac), a pairing sheet showing the code, connection status, and automatic reconnection to the last Mac. Open and Show in Files are hidden for files that live on the Mac.
@@ -168,7 +168,7 @@ Still to check on real devices: the local network permission prompts, and pairin
 - Accessibility: VoiceOver labels for the piece map, Dynamic Type, reduced motion.
 - Light and dark mode, Liquid Glass materials where Apple uses them.
 - Performance testing with large torrents and many torrents at once.
-- Unit tests for TorrentKit wrappers and priority logic. UI tests for main flows.
+- Unit tests for TesseraKit wrappers and priority logic. UI tests for main flows.
 - Crash safety: resume data always flushed, no data loss on force quit.
 
 ---

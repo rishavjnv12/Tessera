@@ -1,5 +1,5 @@
 import SwiftUI
-import TorrentUI
+import TesseraUI
 
 /// A simulated 25,000-piece download, for checking the piece map without a network.
 struct PieceMapDemoView: View {

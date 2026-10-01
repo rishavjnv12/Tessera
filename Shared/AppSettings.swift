@@ -1,9 +1,9 @@
 import Foundation
-import TorrentKit
+import TesseraKit
 
 /// User settings, saved in UserDefaults and applied to the engine as they change.
 struct AppSettings: Codable, Equatable {
-    /// nil uses the default folder (~/Torrent on Mac, the app's Documents folder on iPhone).
+    /// nil uses the default folder (~/Tessera on Mac, the app's Documents folder on iPhone).
     var downloadFolderPath: String?
 
     /// 0 picks a random port at launch.
@@ -29,7 +29,7 @@ struct AppSettings: Codable, Equatable {
     var allowRemoteControl = true
 
     static let defaultsKey = "settings"
-    /// Mirrored into its own UserDefaults key for the menu bar scene (see TorrentMacApp).
+    /// Mirrored into its own UserDefaults key for the menu bar scene (see TesseraMacApp).
     static let menuBarKey = "showInMenuBar"
 
     static func load() -> AppSettings {

@@ -1,6 +1,6 @@
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// Shown for each torrent being added: where to save it and which files to download.
 struct AddTorrentSheet: View {

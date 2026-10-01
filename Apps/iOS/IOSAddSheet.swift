@@ -1,6 +1,6 @@
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// Confirms a torrent before adding: which files to download and whether to start now.
 struct IOSAddSheet: View {
@@ -68,7 +68,7 @@ struct IOSAddSheet: View {
                     if store.isRemote, let mac = store.backend?.displayName {
                         Text("Downloads on \(mac), into its download folder.")
                     } else {
-                        Text("Saved to On My iPhone › Torrent, visible in the Files app.")
+                        Text("Saved to On My iPhone › Tessera, visible in the Files app.")
                     }
                 }
             }

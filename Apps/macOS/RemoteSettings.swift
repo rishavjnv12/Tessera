@@ -11,7 +11,7 @@ struct RemoteSettings: View {
             Section {
                 Toggle("Allow iPhone and iPad to control this Mac", isOn: $store.settings.allowRemoteControl)
             } footer: {
-                Text("On your iPhone, open Torrent, tap the device button and choose Pair with a Mac. Both need to be on the same network. After you allow a device here, everything it sends is encrypted.")
+                Text("On your iPhone, open Tessera, tap the device button and choose Pair with a Mac. Both need to be on the same network. After you allow a device here, everything it sends is encrypted.")
                     .foregroundStyle(.secondary)
             }
             Section("Paired devices") {

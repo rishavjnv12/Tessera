@@ -1,6 +1,6 @@
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// iPhone: a list that pushes the detail screen. iPad: list and detail side by side.
 struct IOSContentView: View {
@@ -155,7 +155,7 @@ struct IOSContentView: View {
                     }
                 } footer: {
                     if !store.isRemote, store.count(.downloading) > 0 {
-                        Label("iOS pauses downloads when Torrent isn’t on screen. They continue when you come back.",
+                        Label("iOS pauses downloads when Tessera isn’t on screen. They continue when you come back.",
                               systemImage: "info.circle")
                             .font(.footnote)
                     }

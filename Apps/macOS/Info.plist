@@ -46,10 +46,10 @@
 	<string>1</string>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_torrentremote._tcp</string>
+		<string>_tesseraremote._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Torrent lets your paired iPhone and iPad control downloads on this Mac.</string>
+	<string>Tessera lets your paired iPhone and iPad control downloads on this Mac.</string>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>

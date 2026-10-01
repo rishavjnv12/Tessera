@@ -1,6 +1,6 @@
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// Sortable list of torrents. Right-click acts on the clicked row, or on the whole selection
 /// when the clicked row is part of it. Double-click shows the files in Finder.

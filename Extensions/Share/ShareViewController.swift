@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 
-/// "Share → Torrent": collects .torrent files and magnet links and leaves them in the app's
+/// "Share → Tessera": collects .torrent files and magnet links and leaves them in the app's
 /// inbox. The app adds them the next time it opens.
 final class ShareViewController: UIViewController {
     private let model = ShareModel()
@@ -98,7 +98,7 @@ private struct ShareView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("Torrent")
+                .navigationTitle("Tessera")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -137,9 +137,9 @@ private struct ShareView: View {
                                    description: Text("Share a .torrent file or a magnet link."))
         case .saved(let count):
             ContentUnavailableView {
-                Label(count == 1 ? "Added to Torrent" : "\(count) Added to Torrent", systemImage: "checkmark.circle.fill")
+                Label(count == 1 ? "Added to Tessera" : "\(count) Added to Tessera", systemImage: "checkmark.circle.fill")
             } description: {
-                Text("Open Torrent to start downloading.")
+                Text("Open Tessera to start downloading.")
             }
         case .failed(let message):
             ContentUnavailableView("Couldn’t Add", systemImage: "exclamationmark.triangle", description: Text(message))

@@ -1,5 +1,5 @@
 import SwiftUI
-import TorrentKit
+import TesseraKit
 
 /// What the menu bar commands act on, for one window.
 ///

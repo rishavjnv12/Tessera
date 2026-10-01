@@ -1,5 +1,5 @@
 # Xcode project spec. Regenerate the project after editing:  xcodegen generate
-name: Torrent
+name: Tessera
 
 options:
   bundleIdPrefix: io.github.rishavjnv12
@@ -9,8 +9,8 @@ options:
     iOS: "26.0"
 
 packages:
-  TorrentUI:
-    path: Packages/TorrentUI
+  TesseraUI:
+    path: Packages/TesseraUI
 
 settings:
   base:
@@ -30,13 +30,13 @@ settings:
 
 targets:
   # Shared engine: Objective-C++ facade over libtorrent, built for macOS and iOS.
-  TorrentKit:
+  TesseraKit:
     type: framework
     supportedDestinations: [macOS, iOS]
     sources:
-      - path: TorrentKit/include
+      - path: TesseraKit/include
         headerVisibility: public
-      - path: TorrentKit/Sources
+      - path: TesseraKit/Sources
         headerVisibility: project
     configFiles:
       Debug: Vendor/libtorrent.xcconfig
@@ -48,8 +48,8 @@ targets:
       - sdk: Security.framework
     settings:
       base:
-        PRODUCT_NAME: TorrentKit
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.TorrentKit
+        PRODUCT_NAME: TesseraKit
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.TesseraKit
         GENERATE_INFOPLIST_FILE: YES
         DEFINES_MODULE: YES
         SKIP_INSTALL: YES
@@ -57,42 +57,42 @@ targets:
         GCC_SYMBOLS_PRIVATE_EXTERN: YES
 
   # Command-line harness for exercising the engine against real torrents.
-  torrentctl:
+  tesseractl:
     type: tool
     platform: macOS
     sources:
-      - Tools/torrentctl
+      - Tools/tesseractl
     dependencies:
-      - target: TorrentKit
+      - target: TesseraKit
         embed: false
     settings:
       base:
-        PRODUCT_NAME: torrentctl
+        PRODUCT_NAME: tesseractl
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path"
 
-  TorrentKitTests:
+  TesseraKitTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - TorrentKitTests
+      - TesseraKitTests
     dependencies:
-      - target: TorrentKit
+      - target: TesseraKit
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.TorrentKitTests
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.TesseraKitTests
         GENERATE_INFOPLIST_FILE: YES
 
-  Torrent-macOS:
+  Tessera-macOS:
     type: application
     platform: macOS
     sources:
       - Apps/macOS
       - Shared
     dependencies:
-      - target: TorrentKit
-      - package: TorrentUI
+      - target: TesseraKit
+      - package: TesseraUI
     entitlements:
-      path: Apps/macOS/Torrent.entitlements
+      path: Apps/macOS/Tessera.entitlements
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
@@ -101,9 +101,9 @@ targets:
         com.apple.security.files.downloads.read-write: true
         # Folders picked in Settings or the add sheet stay usable after a relaunch.
         com.apple.security.files.bookmarks.app-scope: true
-        # The default download folder, ~/Torrent. Fine for direct (non-App Store) distribution.
+        # The default download folder, ~/Tessera. Fine for direct (non-App Store) distribution.
         com.apple.security.temporary-exception.files.home-relative-path.read-write:
-          - /Torrent/
+          - /Tessera/
     info:
       path: Apps/macOS/Info.plist
       properties:
@@ -124,17 +124,17 @@ targets:
           - CFBundleURLName: Magnet Link
             CFBundleURLSchemes: [magnet]
         # Remote control: paired iPhones find this Mac on the local network.
-        NSBonjourServices: [_torrentremote._tcp]
-        NSLocalNetworkUsageDescription: Torrent lets your paired iPhone and iPad control downloads on this Mac.
+        NSBonjourServices: [_tesseraremote._tcp]
+        NSLocalNetworkUsageDescription: Tessera lets your paired iPhone and iPad control downloads on this Mac.
     settings:
       base:
-        PRODUCT_NAME: Torrent
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Torrent
+        PRODUCT_NAME: Tessera
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Tessera
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Torrent
+        INFOPLIST_KEY_CFBundleDisplayName: Tessera
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
-        INFOPLIST_KEY_NSUserNotificationsUsageDescription: "Torrent tells you when a download finishes." 
+        INFOPLIST_KEY_NSUserNotificationsUsageDescription: "Tessera tells you when a download finishes." 
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_HARDENED_RUNTIME: YES
@@ -142,7 +142,7 @@ targets:
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
 
-  Torrent-iOS:
+  Tessera-iOS:
     type: application
     platform: iOS
     sources:
@@ -150,14 +150,14 @@ targets:
       - Shared
       - SharedIOS
     dependencies:
-      - target: TorrentKit
-      - package: TorrentUI
-      - target: TorrentShare
-      - target: TorrentWidgets
+      - target: TesseraKit
+      - package: TesseraUI
+      - target: TesseraShare
+      - target: TesseraWidgets
     entitlements:
-      path: Apps/iOS/Torrent.entitlements
+      path: Apps/iOS/Tessera.entitlements
       properties:
-        com.apple.security.application-groups: [group.io.github.rishavjnv12.Torrent]
+        com.apple.security.application-groups: [group.io.github.rishavjnv12.Tessera]
     info:
       path: Apps/iOS/Info.plist
       properties:
@@ -177,21 +177,21 @@ targets:
           - CFBundleURLName: Magnet Link
             CFBundleURLSchemes: [magnet]
         NSSupportsLiveActivities: true
-        # Remote control: finds Macs running Torrent on the local network.
-        NSBonjourServices: [_torrentremote._tcp]
+        # Remote control: finds Macs running Tessera on the local network.
+        NSBonjourServices: [_tesseraremote._tcp]
     settings:
       base:
-        PRODUCT_NAME: Torrent
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Torrent
+        PRODUCT_NAME: Tessera
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Tessera
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Torrent
+        INFOPLIST_KEY_CFBundleDisplayName: Tessera
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
-        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Torrent finds your Mac to control its downloads, and talks to your router so peers can connect to you."
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "Tessera finds your Mac to control its downloads, and talks to your router so peers can connect to you."
         INFOPLIST_KEY_UIFileSharingEnabled: YES
         INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -200,21 +200,21 @@ targets:
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
 
-  # Share Sheet: "Share → Torrent" for .torrent files and magnet links from other apps.
-  TorrentShare:
+  # Share Sheet: "Share → Tessera" for .torrent files and magnet links from other apps.
+  TesseraShare:
     type: app-extension
     platform: iOS
     sources:
       - Extensions/Share
       - SharedIOS/Inbox.swift
     entitlements:
-      path: Extensions/Share/TorrentShare.entitlements
+      path: Extensions/Share/TesseraShare.entitlements
       properties:
-        com.apple.security.application-groups: [group.io.github.rishavjnv12.Torrent]
+        com.apple.security.application-groups: [group.io.github.rishavjnv12.Tessera]
     info:
       path: Extensions/Share/Info.plist
       properties:
-        CFBundleDisplayName: Torrent
+        CFBundleDisplayName: Tessera
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
@@ -226,16 +226,16 @@ targets:
               OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.plain-text").@count >= 1).@count >= 1
     settings:
       base:
-        PRODUCT_NAME: TorrentShare
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Torrent.Share
+        PRODUCT_NAME: TesseraShare
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Tessera.Share
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Torrent
+        INFOPLIST_KEY_CFBundleDisplayName: Tessera
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
         SKIP_INSTALL: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
 
   # Live Activity and Dynamic Island for downloads.
-  TorrentWidgets:
+  TesseraWidgets:
     type: app-extension
     platform: iOS
     sources:
@@ -247,15 +247,15 @@ targets:
     info:
       path: Extensions/Widgets/Info.plist
       properties:
-        CFBundleDisplayName: Torrent
+        CFBundleDisplayName: Tessera
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_NAME: TorrentWidgets
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Torrent.Widgets
+        PRODUCT_NAME: TesseraWidgets
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.Tessera.Widgets
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Torrent
+        INFOPLIST_KEY_CFBundleDisplayName: Tessera
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
         SKIP_INSTALL: YES
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
@@ -268,10 +268,10 @@ targets:
       - RemoteTests
       - Shared/Remote
       - Shared/TorrentBackend.swift
-      - TorrentKitTests/TorrentFixture.swift
+      - TesseraKitTests/TorrentFixture.swift
     dependencies:
-      - target: TorrentKit
-      - package: TorrentUI
+      - target: TesseraKit
+      - package: TesseraUI
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: io.github.rishavjnv12.RemoteTests
@@ -279,32 +279,32 @@ targets:
         SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
 
 schemes:
-  TorrentKit:
+  TesseraKit:
     build:
       targets:
-        TorrentKit: all
+        TesseraKit: all
     test:
       targets:
-        - TorrentKitTests
+        - TesseraKitTests
         - RemoteTests
-  torrentctl:
+  tesseractl:
     build:
       targets:
-        torrentctl: all
+        tesseractl: all
     run:
       config: Debug
-  Torrent-macOS:
+  Tessera-macOS:
     build:
       targets:
-        Torrent-macOS: all
+        Tessera-macOS: all
     run:
       config: Debug
     archive:
       config: Release
-  Torrent-iOS:
+  Tessera-iOS:
     build:
       targets:
-        Torrent-iOS: all
+        Tessera-iOS: all
     run:
       config: Debug
     archive:

@@ -1,6 +1,6 @@
 import SwiftUI
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// Right-hand pane: piece map on top, then Files, Peers, Trackers and Info.
 struct InspectorView: View {
@@ -373,7 +373,7 @@ private struct InfoTab: View {
 }
 
 extension String {
-    /// "/Users/name/Torrent" as "~/Torrent".
+    /// "/Users/name/Tessera" as "~/Tessera".
     var abbreviatingHome: String {
         guard let home = getpwuid(getuid()).flatMap({ String(validatingCString: $0.pointee.pw_dir) }), hasPrefix(home) else { return self }
         return "~" + dropFirst(home.count)

@@ -3,7 +3,7 @@ import Foundation
 /// Hand-off folder in the App Group. The share extension drops torrents and magnet links here;
 /// the app adds them the next time it becomes active. (A share extension cannot open its app.)
 enum Inbox {
-    static let groupID = "group.io.github.rishavjnv12.Torrent"
+    static let groupID = "group.io.github.rishavjnv12.Tessera"
 
     enum Item {
         case torrent(data: Data, name: String)

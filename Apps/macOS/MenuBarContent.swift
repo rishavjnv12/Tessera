@@ -1,5 +1,5 @@
 import SwiftUI
-import TorrentKit
+import TesseraKit
 
 /// The window that opens from the menu bar item: speeds, active torrents, pause and resume.
 struct MenuBarContent: View {
@@ -15,7 +15,7 @@ struct MenuBarContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Torrent").font(.headline)
+                Text("Tessera").font(.headline)
                 Spacer()
                 Label(Format.rate(store.downloadRate), systemImage: "arrow.down")
                 Label(Format.rate(store.uploadRate), systemImage: "arrow.up")
@@ -59,7 +59,7 @@ struct MenuBarContent: View {
                 Button("Resume All") { store.resumeAll() }
                     .disabled(!store.torrents.contains(where: \.isPaused))
                 Spacer()
-                Button("Open Torrent") {
+                Button("Open Tessera") {
                     openWindow(id: "main")
                     NSApp.activate()
                 }

@@ -1,7 +1,7 @@
 import Foundation
 import Observation
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// Keeps a piece map and file list of one torrent up to date, once per second.
 ///

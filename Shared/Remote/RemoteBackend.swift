@@ -2,8 +2,8 @@ import CryptoKit
 import Foundation
 import Network
 import Observation
-import TorrentKit
-import TorrentUI
+import TesseraKit
+import TesseraUI
 
 /// A Mac's engine, controlled over the network. Reads answer from what the Mac last sent and ask
 /// for fresh data in the background; the screens poll about once per second, so they catch up.
@@ -27,7 +27,7 @@ nonisolated final class RemoteBackend: TorrentBackend, @unchecked Sendable {
     var onStateChange: (@MainActor @Sendable (State) -> Void)?
     var onError: (@MainActor @Sendable (String) -> Void)?
 
-    private let queue = DispatchQueue(label: "io.github.rishavjnv12.Torrent.remote")
+    private let queue = DispatchQueue(label: "io.github.rishavjnv12.Tessera.remote")
 
     // Guarded by `lock`: read from any thread by the screens.
     private let lock = NSLock()
@@ -318,7 +318,7 @@ nonisolated enum RemotePairing {
     /// the user to allow it on the Mac. Saves and returns the Mac as a paired peer.
     static func pair(with endpoint: NWEndpoint, deviceName: String, store: any PeerStore,
                      showCode: @escaping @Sendable (String) -> Void) async throws -> PairedPeer {
-        let queue = DispatchQueue(label: "io.github.rishavjnv12.Torrent.pairing")
+        let queue = DispatchQueue(label: "io.github.rishavjnv12.Tessera.pairing")
         let wire = WireConnection(to: endpoint, queue: queue)
         return try await withCheckedThrowingContinuation { continuation in
             let privateKey = Curve25519.KeyAgreement.PrivateKey()
