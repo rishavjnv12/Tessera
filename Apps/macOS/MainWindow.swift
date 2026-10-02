@@ -8,13 +8,15 @@ enum SidebarItem: Hashable {
     case demo
 }
 
-/// Mail-style window: filters in the sidebar, torrents in a table, details in the inspector.
+/// Mail-style window: filters in the sidebar, torrents in a table, details in a resizable pane below it.
 struct MainWindow: View {
     @Bindable var store: TorrentStore
     @State private var sidebar: SidebarItem? = .filter(.all)
     @State private var selection: Set<String> = []
     @State private var search = ""
-    @State private var showInspector = true
+    /// Shared with the View menu command through UserDefaults.
+    @AppStorage("showDetailsPane") private var showDetails = true
+    @AppStorage("detailsPaneHeight") private var detailsHeight = 360.0
     @State private var importing = false
     @State private var addingMagnet = false
     @State private var removal: Removal?
@@ -42,10 +44,6 @@ struct MainWindow: View {
                 .navigationSplitViewColumnWidth(min: 190, ideal: 210, max: 280)
         } detail: {
             content
-                .inspector(isPresented: $showInspector) {
-                    InspectorView(store: store, selection: selection)
-                        .inspectorColumnWidth(min: 340, ideal: 420, max: 680)
-                }
         }
         .navigationTitle(sidebar == .demo ? "Piece Map Demo" : filter.title)
         .navigationSubtitle(subtitle)
@@ -159,16 +157,32 @@ struct MainWindow: View {
                 Button("Add Magnet Link…") { addingMagnet = true }
             }
         } else {
-            TorrentTable(store: store, rows: rows, selection: $selection, onRemove: { ids, delete in
-                removal = Removal(ids: ids, deleteFiles: delete)
-            })
-            .overlay {
-                if rows.isEmpty {
-                    ContentUnavailableView(search.isEmpty ? "No \(filter.title) Torrents" : "No Results",
-                                           systemImage: search.isEmpty ? filter.systemImage : "magnifyingglass")
-                }
-            }
+            detailsSplit
         }
+    }
+
+    private var detailsSplit: some View {
+            DetailsSplit(hasPane: true, isExpanded: $showDetails, bottomHeight: $detailsHeight, title: detailsTitle) {
+                TorrentTable(store: store, rows: rows, selection: $selection, onRemove: { ids, delete in
+                    removal = Removal(ids: ids, deleteFiles: delete)
+                })
+                .overlay {
+                    if rows.isEmpty {
+                        ContentUnavailableView(search.isEmpty ? "No \(filter.title) Torrents" : "No Results",
+                                               systemImage: search.isEmpty ? filter.systemImage : "magnifyingglass")
+                    }
+                }
+            } bottom: {
+                InspectorView(store: store, selection: selection)
+            }
+            .animation(.snappy(duration: 0.2), value: showDetails)
+    }
+
+    /// Shown in the details bar while the details are hidden.
+    private var detailsTitle: String {
+        if selection.isEmpty { return String(localized: "No Selection") }
+        if selection.count == 1, let t = selectedTorrents.first { return t.name }
+        return String(localized: "\(selection.count) torrents selected")
     }
 
     private var rows: [TorrentStatus] {
@@ -205,10 +219,6 @@ struct MainWindow: View {
                 .help("Remove the selected torrents")
                 .disabled(selection.isEmpty)
         }
-        ToolbarItem {
-            Button("Inspector", systemImage: "sidebar.trailing") { showInspector.toggle() }
-                .help("Show or hide the inspector (⌥⌘I)")
-        }
     }
 
     // MARK: Actions
@@ -232,7 +242,6 @@ struct MainWindow: View {
         }
         actions.pauseAll = { store.pauseAll() }
         actions.resumeAll = { store.resumeAll() }
-        actions.toggleInspector = { showInspector.toggle() }
     }
 
     private func handleDrop(_ providers: [NSItemProvider]) -> Bool {

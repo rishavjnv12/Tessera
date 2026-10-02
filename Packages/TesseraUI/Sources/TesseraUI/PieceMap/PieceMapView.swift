@@ -96,6 +96,9 @@ public struct PieceMapView: View {
         .scrollDisabled(content.height <= fitHeight)
         .scrollIndicators(content.height > fitHeight ? .automatic : .hidden)
         .frame(height: map.pieceCount == 0 ? fitHeight : min(fitHeight, max(content.height, layout.cellSize)))
+        // Measure the width we are offered, not the grid's: the grid is drawn at the measured width,
+        // so measuring it let the map grow but never shrink (it held a narrowed Mac pane wide open).
+        .frame(minWidth: 0, maxWidth: .infinity)
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
         .simultaneousGesture(
             MagnifyGesture()

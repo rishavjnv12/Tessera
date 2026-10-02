@@ -24,7 +24,6 @@ final class TorrentActions {
     @ObservationIgnored var toggleSequential: () -> Void = {}
     @ObservationIgnored var pauseAll: () -> Void = {}
     @ObservationIgnored var resumeAll: () -> Void = {}
-    @ObservationIgnored var toggleInspector: () -> Void = {}
 
     /// Updates the menu state; assigns only what changed so the menus are not invalidated needlessly.
     func update(selected: [TorrentStatus]) {
@@ -45,6 +44,8 @@ extension FocusedValues {
 
 struct TorrentCommands: Commands {
     @FocusedValue(\.torrentActions) private var actions
+    /// Same key as MainWindow, so the menu and the toolbar button stay in sync.
+    @AppStorage("showDetailsPane") private var showDetails = true
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
@@ -55,7 +56,7 @@ struct TorrentCommands: Commands {
         }
         CommandGroup(replacing: .printItem) {}
         CommandGroup(after: .sidebar) {
-            Button("Show Inspector") { actions?.toggleInspector() }
+            Button(showDetails ? "Hide Details" : "Show Details") { showDetails.toggle() }
                 .keyboardShortcut("i", modifiers: [.command, .option])
                 .disabled(actions == nil)
         }

@@ -2,7 +2,8 @@ import SwiftUI
 import TesseraKit
 import TesseraUI
 
-/// Right-hand pane: piece map on top, then Files, Peers, Trackers and Info.
+/// Details pane below the torrent table: the piece map, then Files, Peers, Trackers and Info.
+/// Wide panes put them side by side; narrow ones stack them.
 struct InspectorView: View {
     var store: TorrentStore
     var selection: Set<String>
@@ -14,9 +15,10 @@ struct InspectorView: View {
         } else {
             ContentUnavailableView(
                 selection.isEmpty ? "No Selection" : "\(selection.count) Torrents Selected",
-                systemImage: selection.isEmpty ? "sidebar.trailing" : "square.stack",
+                systemImage: selection.isEmpty ? "rectangle.bottomthird.inset.filled" : "square.stack",
                 description: Text(selection.isEmpty ? "Select a torrent to see its pieces, files and peers." : "Select one torrent to see its details.")
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // centered in the pane, not pinned to its left edge
         }
     }
 }
@@ -41,45 +43,87 @@ private struct TorrentInspector: View {
     @AppStorage("inspectorTab") private var tab: InspectorTab = .files
     @State private var feed = PieceMapFeed()
     @State private var selectedFiles: Set<Int> = []
+    /// Current pane width, used only to choose one or two columns.
+    @State private var width: CGFloat = 0
 
     private var canChangePriority: Bool { torrent.hasMetadata && torrent.state != .seeding }
 
+    /// At or above this width the piece map and the tabs sit side by side.
+    private static let sideBySideWidth: CGFloat = 760
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                header
-                if let file = feed.files.first(where: { $0.index == torrent.fileDownloadingFromStart }) {
-                    FromStartBanner(file: file, onOpen: { NSWorkspace.shared.open(file.url(in: torrent.savePath)) }) {
-                        perform { try $0.stopDownloadingFromStart(torrent: torrent.id) }
+        Group {
+            if width >= Self.sideBySideWidth {
+                // Columns may shrink to nothing: their contents (the peer table's column minimums,
+                // a width taken from the current width) must never raise the window's minimum width.
+                HStack(alignment: .top, spacing: 0) {
+                    ScrollView { overview.padding(16).frame(maxWidth: .infinity, alignment: .leading) }
+                        .frame(minWidth: 0, maxWidth: min(max(width * 0.42, 340), 600))
+                        .layoutPriority(1)
+                    Divider()
+                    ScrollView { tabs.padding(16).frame(maxWidth: .infinity, alignment: .leading) }
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                }
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        overview
+                        tabs
                     }
+                    .padding(16)
+                    // A row wider than the pane must not widen the content (a ScrollView centers it,
+                    // which hid the left edge); anchor to the leading edge instead.
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                PieceMapCard(
-                    map: feed.map,
-                    highlightedRanges: feed.map.files.filter { selectedFiles.contains($0.id) }.compactMap(\.pieces),
-                    fitHeight: 130,
-                    onSetPriority: canChangePriority ? { range, priority in
-                        guard store.setPriority(priority, pieces: range, torrent: torrent.id) else { return }
-                        feed.showPriority(priority, pieces: [range])
-                        feed.refreshSoon()
-                    } : nil
-                )
-                Picker("Show", selection: $tab) {
-                    ForEach(InspectorTab.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                switch tab {
-                case .files: files
-                case .peers: PeersTab(store: store, torrentID: torrent.id)
-                case .trackers: TrackersTab(store: store, torrent: torrent)
-                case .info: InfoTab(store: store, torrent: torrent)
-                }
+                .frame(minWidth: 0, maxWidth: .infinity)
             }
-            .padding(16)
         }
+        .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        // Only records the width to pick a layout; it never sizes anything, so it can't go stale.
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { width = $0 }
         .task(id: torrent.id) {
             guard let backend = store.backend else { return }
             await feed.run(backend: backend, torrentID: torrent.id)
+        }
+    }
+
+    /// Name, progress and the piece map.
+    private var overview: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            header
+            if let file = feed.files.first(where: { $0.index == torrent.fileDownloadingFromStart }) {
+                FromStartBanner(file: file, onOpen: { NSWorkspace.shared.open(file.url(in: torrent.savePath)) }) {
+                    perform { try $0.stopDownloadingFromStart(torrent: torrent.id) }
+                }
+            }
+            PieceMapCard(
+                map: feed.map,
+                highlightedRanges: feed.map.files.filter { selectedFiles.contains($0.id) }.compactMap(\.pieces),
+                fitHeight: 130,
+                onSetPriority: canChangePriority ? { range, priority in
+                    guard store.setPriority(priority, pieces: range, torrent: torrent.id) else { return }
+                    feed.showPriority(priority, pieces: [range])
+                    feed.refreshSoon()
+                } : nil
+            )
+        }
+    }
+
+    /// Files, Peers, Trackers and Info.
+    private var tabs: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Picker("Show", selection: $tab) {
+                ForEach(InspectorTab.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .fixedSize()
+            switch tab {
+            case .files: files
+            case .peers: PeersTab(store: store, torrentID: torrent.id)
+            case .trackers: TrackersTab(store: store, torrent: torrent)
+            case .info: InfoTab(store: store, torrent: torrent)
+            }
         }
     }
 

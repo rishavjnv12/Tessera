@@ -18,6 +18,7 @@
 		1329ACE876639737E32E2C87 /* DownloadActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B28642B35EB552613BF07A0 /* DownloadActivity.swift */; };
 		14AA68F9F6BE721FDCD467A0 /* TKInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = D10DFA8F14CA5FB3598CE66E /* TKInternal.h */; };
 		1D34BCDEBD086AAA57251697 /* TesseraShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 58F346366CB8BEA746DB81D5 /* TesseraShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1E4491507BB54A2C9AAB7353 /* DetailsSplit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B34E53BC70FAD999064A8BA /* DetailsSplit.swift */; };
 		1F72196406E95BA5C367AF1E /* TesseraKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6259B6FCA67EE4829D9A93CB /* TesseraKit.framework */; };
 		1F96949209973CC6ACD78957 /* PieceMapDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0079889C62701DF846306926 /* PieceMapDemoView.swift */; };
 		20F5546D437E1F6D4CC8F21D /* TKAddTorrentOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = DC1FFAE59E425BDAC970CFF9 /* TKAddTorrentOptions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -255,6 +256,7 @@
 		3808AC03419C9C06D5830C0A /* RemoteServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServer.swift; sourceTree = "<group>"; };
 		40E9C20497CBB7006A819A74 /* TKPeer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKPeer.h; sourceTree = "<group>"; };
 		45D2684CD28063C7E7001FA9 /* IOSAddSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSAddSheet.swift; sourceTree = "<group>"; };
+		4B34E53BC70FAD999064A8BA /* DetailsSplit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsSplit.swift; sourceTree = "<group>"; };
 		4B8F5F0D53D268E178A162E8 /* TorrentSession+Streams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TorrentSession+Streams.swift"; sourceTree = "<group>"; };
 		4BD534F790D010E3A8A8EC52 /* IOSContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSContentView.swift; sourceTree = "<group>"; };
 		4FEBF5AD0EC50C6AAA2E07EC /* TorrentRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentRow.swift; sourceTree = "<group>"; };
@@ -391,6 +393,7 @@
 			children = (
 				6818FA7ABB4E951717ECDD9A /* AddTorrentSheet.swift */,
 				09EDB5C3B188FE8292A1A547 /* Commands.swift */,
+				4B34E53BC70FAD999064A8BA /* DetailsSplit.swift */,
 				6A0EEB14A76FD7E5108CF17C /* DockProgress.swift */,
 				1F0DC5ACC34B45B1E863EF6B /* Info.plist */,
 				0D5E69DD6D7D5219B58A866B /* InspectorView.swift */,
@@ -1024,6 +1027,7 @@
 				12D4082F9842F8C8F3E9E439 /* AddTorrentViews.swift in Sources */,
 				4074C1AFC216BA4EB9010EC5 /* AppSettings.swift in Sources */,
 				765EAD48B9F5DB930ADCBAE8 /* Commands.swift in Sources */,
+				1E4491507BB54A2C9AAB7353 /* DetailsSplit.swift in Sources */,
 				FCF41AF82641B129A6C8C64E /* DockProgress.swift in Sources */,
 				0A04637FE592173ED8916B4B /* DownloadFolders.swift in Sources */,
 				AB41F48F6C82569F2A941D23 /* FileList.swift in Sources */,
