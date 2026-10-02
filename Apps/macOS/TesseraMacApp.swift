@@ -68,6 +68,14 @@ struct TesseraMacApp: App {
             SettingsView(store: delegate.store)
         }
 
+        // Privacy Policy, Terms of Use and Acknowledgements, opened from the Help menu.
+        // One window per document; choosing it again brings that window forward.
+        WindowGroup(id: "legal", for: LegalDocument.self) { $document in
+            LegalDocumentView(document: document ?? .privacy)
+                .frame(minWidth: 480, minHeight: 420)
+        }
+        .defaultSize(width: 660, height: 720)
+
         // Bound to plain UserDefaults, not the observable store: reading the store here made the
         // scene graph update itself in a loop (100% CPU, unresponsive at launch).
         MenuBarExtra(isInserted: $showInMenuBar) {

@@ -44,6 +44,7 @@ extension FocusedValues {
 
 struct TorrentCommands: Commands {
     @FocusedValue(\.torrentActions) private var actions
+    @Environment(\.openWindow) private var openWindow
     /// Same key as MainWindow, so the menu and the toolbar button stay in sync.
     @AppStorage("showDetailsPane") private var showDetails = true
 
@@ -55,6 +56,12 @@ struct TorrentCommands: Commands {
                 .keyboardShortcut("o", modifiers: [.command, .shift])
         }
         CommandGroup(replacing: .printItem) {}
+        // There is no help book, so the Help menu holds the legal documents instead.
+        CommandGroup(replacing: .help) {
+            ForEach(LegalDocument.allCases) { document in
+                Button(document.title) { openWindow(id: "legal", value: document) }
+            }
+        }
         CommandGroup(after: .sidebar) {
             Button(showDetails ? "Hide Details" : "Show Details") { showDetails.toggle() }
                 .keyboardShortcut("i", modifiers: [.command, .option])

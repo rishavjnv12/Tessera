@@ -1,0 +1,61 @@
+:root {
+  color-scheme: light dark;
+  --text: #1d1d1f;
+  --secondary: #6e6e73;
+  --background: #ffffff;
+  --rule: #d2d2d7;
+  --card: #f5f5f7;
+  --accent: #1f9e3c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #f5f5f7;
+    --secondary: #a1a1a6;
+    --background: #1e1e1e;
+    --rule: #3a3a3c;
+    --card: #2c2c2e;
+    --accent: #5fe050;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  padding: 28px 22px 48px;
+  background: var(--background);
+  color: var(--text);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+}
+main { max-width: 720px; margin: 0 auto; }
+h1 { font-size: 28px; line-height: 1.2; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 19px; margin: 30px 0 8px; }
+h3 { font-size: 15px; margin: 18px 0 4px; }
+p, li { margin: 0 0 10px; }
+ul { padding-left: 22px; margin: 0 0 10px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.updated { color: var(--secondary); margin-bottom: 22px; }
+/* In the app the window or navigation bar already shows the title. */
+html.in-app h1 { display: none; }
+html.in-app body { padding-top: 16px; }
+.summary {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin: 0 0 8px;
+}
+.summary p:last-child, .summary ul:last-child { margin-bottom: 0; }
+nav.docs { border-top: 1px solid var(--rule); margin-top: 36px; padding-top: 14px; color: var(--secondary); font-size: 13px; }
+nav.docs a { margin-right: 14px; }
+.license {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.license p { margin: 0 0 9px; }
+.license p:last-child { margin-bottom: 0; }
+.license p.item { padding-left: 1.1em; text-indent: -1.1em; }
+.component { color: var(--secondary); margin-bottom: 6px; }

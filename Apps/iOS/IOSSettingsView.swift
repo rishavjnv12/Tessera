@@ -5,6 +5,13 @@ struct IOSSettingsView: View {
     @Bindable var store: TorrentStore
     @Environment(\.dismiss) private var dismiss
 
+    private static var version: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "\(short) (\(build))"
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -43,6 +50,20 @@ struct IOSSettingsView: View {
                         FilesApp.open(store.downloadFolder.appending(path: "x"))
                     }
                     LabeledContent("Engine", value: "libtorrent \(store.engineVersion)")
+                }
+                Section {
+                    ForEach(LegalDocument.allCases) { document in
+                        NavigationLink {
+                            LegalDocumentView(document: document)
+                                .navigationBarTitleDisplayMode(.inline)
+                        } label: {
+                            Label(document.title, systemImage: document.systemImage)
+                        }
+                    }
+                } header: {
+                    Text("About")
+                } footer: {
+                    Text("Tessera \(Self.version)")
                 }
             }
             .navigationTitle("Settings")

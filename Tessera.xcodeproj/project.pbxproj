@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		028626096F6D5FCDCBB93E5E /* acknowledgements.html in Resources */ = {isa = PBXBuildFile; fileRef = A04BD2D53CC159484B6061E6 /* acknowledgements.html */; };
 		033E0FC647E2C46FD7A7D3BD /* TorrentRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEBF5AD0EC50C6AAA2E07EC /* TorrentRow.swift */; };
 		043255875C47B30768049940 /* TKTracker.h in Headers */ = {isa = PBXBuildFile; fileRef = 32AD2EB118F595EE43CE14F6 /* TKTracker.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		0A04637FE592173ED8916B4B /* DownloadFolders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1295FAF618000F8D107DE019 /* DownloadFolders.swift */; };
@@ -17,8 +18,10 @@
 		12D4082F9842F8C8F3E9E439 /* AddTorrentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2657A4F65F3D239F26D59A4 /* AddTorrentViews.swift */; };
 		1329ACE876639737E32E2C87 /* DownloadActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B28642B35EB552613BF07A0 /* DownloadActivity.swift */; };
 		14AA68F9F6BE721FDCD467A0 /* TKInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = D10DFA8F14CA5FB3598CE66E /* TKInternal.h */; };
+		179C39419B12DE9B469E6ED1 /* legal.css in Resources */ = {isa = PBXBuildFile; fileRef = 7C72C6099CB1BD41D5618EEC /* legal.css */; };
 		1D34BCDEBD086AAA57251697 /* TesseraShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 58F346366CB8BEA746DB81D5 /* TesseraShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1E4491507BB54A2C9AAB7353 /* DetailsSplit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B34E53BC70FAD999064A8BA /* DetailsSplit.swift */; };
+		1EE8587B71B70B9037873EB8 /* terms.html in Resources */ = {isa = PBXBuildFile; fileRef = 688840048FB03A5891283759 /* terms.html */; };
 		1F72196406E95BA5C367AF1E /* TesseraKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6259B6FCA67EE4829D9A93CB /* TesseraKit.framework */; };
 		1F96949209973CC6ACD78957 /* PieceMapDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0079889C62701DF846306926 /* PieceMapDemoView.swift */; };
 		20F5546D437E1F6D4CC8F21D /* TKAddTorrentOptions.h in Headers */ = {isa = PBXBuildFile; fileRef = DC1FFAE59E425BDAC970CFF9 /* TKAddTorrentOptions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -37,6 +40,7 @@
 		35AFB72F3824DAB8CEF0F782 /* TesseraMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D05A2C81B05775E1EEF01851 /* TesseraMacApp.swift */; };
 		3815978507170917F643C51D /* PairMacSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E4F3F52C05E2075C8FBA0B /* PairMacSheet.swift */; };
 		3A11413BDBD47FEB3AE69FD0 /* TKTorrentPreview.h in Headers */ = {isa = PBXBuildFile; fileRef = C8CAC726DE1A38EEB19A0BB4 /* TKTorrentPreview.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3AB1667D7919D565465FB956 /* legal.css in Resources */ = {isa = PBXBuildFile; fileRef = 7C72C6099CB1BD41D5618EEC /* legal.css */; };
 		3DE798773C0CB355F67AE3D5 /* TesseraKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6259B6FCA67EE4829D9A93CB /* TesseraKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4074C1AFC216BA4EB9010EC5 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADB524F4A863931B28B48D3 /* AppSettings.swift */; };
 		41629D75D18C9822BB84EF39 /* TesseraUI in Frameworks */ = {isa = PBXBuildFile; productRef = 674558E01FD0B906D9EB7E56 /* TesseraUI */; };
@@ -70,12 +74,15 @@
 		8712E589F627587522FD50D3 /* WireConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5122A19BE1D28519CAB65AE9 /* WireConnection.swift */; };
 		88BD55EB473F659FE326FF17 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD883AE13A5A8A747C74B687 /* Assets.xcassets */; };
 		8B7EEF00862C6EF49456C836 /* RemoteServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3808AC03419C9C06D5830C0A /* RemoteServer.swift */; };
+		8CF5ADD36A93277F415E78EB /* terms.html in Resources */ = {isa = PBXBuildFile; fileRef = 688840048FB03A5891283759 /* terms.html */; };
 		8D68653254A592C19A571B61 /* TKSession.h in Headers */ = {isa = PBXBuildFile; fileRef = E4BD87FBA928FAFBA97E2DDD /* TKSession.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8EFAA0119D65234E0EB3EE82 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC38DABC8487B653910F9D79 /* Security.framework */; };
 		9048145638D7F2B2EE26B5E9 /* TorrentRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FEBF5AD0EC50C6AAA2E07EC /* TorrentRow.swift */; };
 		971A96644DEB682F94F614FA /* RemoteControlTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93D7B91B6D2691E3C6972DB4 /* RemoteControlTests.swift */; };
 		9A7D4B2D174982AF53CCEA80 /* TorrentDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E642CB90EC8263FFA27CE1E /* TorrentDetailView.swift */; };
 		9E8C23D473DEDAFDBB9F654E /* TorrentSession+Streams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8F5F0D53D268E178A162E8 /* TorrentSession+Streams.swift */; };
+		A008429827DC5AFF2A29502F /* privacy.html in Resources */ = {isa = PBXBuildFile; fileRef = 9C73A3AF9DEF432B5C50AB88 /* privacy.html */; };
+		A1D701C5C2DED32F853640C4 /* LegalDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27FAE956532C43C237048C2 /* LegalDocument.swift */; };
 		A2A79464F11327C5EC9B7487 /* TesseraKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6259B6FCA67EE4829D9A93CB /* TesseraKit.framework */; };
 		A49838C7ABBAD744A7E0FEC3 /* FileList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E9AC364E4513E3C4319003 /* FileList.swift */; };
 		A4C1AC6FBAAAF29734D618CC /* PieceMapDemoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0079889C62701DF846306926 /* PieceMapDemoView.swift */; };
@@ -83,10 +90,12 @@
 		AA99923F377B260C4802CD57 /* TKBuildInfo.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9B92DD30684C78F8C840BB2E /* TKBuildInfo.mm */; };
 		AB41F48F6C82569F2A941D23 /* FileList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E9AC364E4513E3C4319003 /* FileList.swift */; };
 		ACB8E8DE353D8A194047047F /* TKDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = 9E9F8BBBD923BFBC6ADBBF28 /* TKDefines.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		AE4F59444B573447D23AFD43 /* acknowledgements.html in Resources */ = {isa = PBXBuildFile; fileRef = A04BD2D53CC159484B6061E6 /* acknowledgements.html */; };
 		AFDF42F0AD2A3A6BFA17A635 /* TesseraKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6259B6FCA67EE4829D9A93CB /* TesseraKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B4EE20C3BEDB0518D2E14919 /* TKTorrentDetails.h in Headers */ = {isa = PBXBuildFile; fileRef = EA783DFDB714372358B5D68A /* TKTorrentDetails.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B663544E768EA31B2D9434E7 /* WireConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5122A19BE1D28519CAB65AE9 /* WireConnection.swift */; };
 		BE68E68B11423D88BDADE90B /* TKJSONCoding.h in Headers */ = {isa = PBXBuildFile; fileRef = 530F2BF49B9944A0AD202CF2 /* TKJSONCoding.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		C49FECB228F2BF82B253B659 /* privacy.html in Resources */ = {isa = PBXBuildFile; fileRef = 9C73A3AF9DEF432B5C50AB88 /* privacy.html */; };
 		C5B9F4B4CE6693C04900ABA2 /* TesseraiOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA8A00737C736C04DA588D9E /* TesseraiOSApp.swift */; };
 		C777A982FDBAA0933917C368 /* TKJSONCoding.mm in Sources */ = {isa = PBXBuildFile; fileRef = EBADAA91432EB0ECC47DBC16 /* TKJSONCoding.mm */; };
 		CB99095C263103C91BBAE29A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0239888258BC7FEA8C0AE605 /* SettingsView.swift */; };
@@ -102,6 +111,7 @@
 		D9E89BB41246D68269DBC0FE /* RemoteCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 959F1E97EEFD274569F6E611 /* RemoteCrypto.swift */; };
 		DA6358EEA66586B0E60E6845 /* TKTorrentEvent.h in Headers */ = {isa = PBXBuildFile; fileRef = 8C091985554540140E935026 /* TKTorrentEvent.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DCEEEE1B352B5803017FF259 /* WireConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5122A19BE1D28519CAB65AE9 /* WireConnection.swift */; };
+		DFDE15B047E48298E02A9642 /* LegalDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27FAE956532C43C237048C2 /* LegalDocument.swift */; };
 		E12EA549CBBEE214793321F3 /* TorrentBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F1CEB96292193A1BD600716 /* TorrentBackend.swift */; };
 		E394F51407C24D52BD24B89E /* TorrentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9780AA0E642EDA1326DCCC13 /* TorrentStore.swift */; };
 		E9234EBE7EBDCE107262EE58 /* TesseraKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6259B6FCA67EE4829D9A93CB /* TesseraKit.framework */; };
@@ -273,9 +283,11 @@
 		6259B6FCA67EE4829D9A93CB /* TesseraKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TesseraKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		64E9AC364E4513E3C4319003 /* FileList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileList.swift; sourceTree = "<group>"; };
 		6818FA7ABB4E951717ECDD9A /* AddTorrentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTorrentSheet.swift; sourceTree = "<group>"; };
+		688840048FB03A5891283759 /* terms.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = terms.html; sourceTree = "<group>"; };
 		6A0EEB14A76FD7E5108CF17C /* DockProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockProgress.swift; sourceTree = "<group>"; };
 		70ED031D88E9710C76602000 /* Tessera-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Tessera-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		748FDBE4283F8E9868DE1312 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		7C72C6099CB1BD41D5618EEC /* legal.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = legal.css; sourceTree = "<group>"; };
 		8319729F1514CBBF5691EA60 /* RemoteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RemoteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B4902B9B1F47A7A587AAF02 /* TKPieceMap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKPieceMap.h; sourceTree = "<group>"; };
 		8C091985554540140E935026 /* TKTorrentEvent.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKTorrentEvent.h; sourceTree = "<group>"; };
@@ -287,13 +299,16 @@
 		9ADB524F4A863931B28B48D3 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		9B28642B35EB552613BF07A0 /* DownloadActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadActivity.swift; sourceTree = "<group>"; };
 		9B92DD30684C78F8C840BB2E /* TKBuildInfo.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TKBuildInfo.mm; sourceTree = "<group>"; };
+		9C73A3AF9DEF432B5C50AB88 /* privacy.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = privacy.html; sourceTree = "<group>"; };
 		9E9F8BBBD923BFBC6ADBBF28 /* TKDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKDefines.h; sourceTree = "<group>"; };
 		9F1CEB96292193A1BD600716 /* TorrentBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentBackend.swift; sourceTree = "<group>"; };
 		9F5E45E79492FB0F587665A4 /* libtorrent.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = libtorrent.xcconfig; sourceTree = "<group>"; };
+		A04BD2D53CC159484B6061E6 /* acknowledgements.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = acknowledgements.html; sourceTree = "<group>"; };
 		A24C0D057D93C6DC7A1DB65C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		A2657A4F65F3D239F26D59A4 /* AddTorrentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTorrentViews.swift; sourceTree = "<group>"; };
 		ABDF5CB46CE3D6E8392BF1D3 /* TKSessionSnapshot.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TKSessionSnapshot.h; sourceTree = "<group>"; };
 		AC818F24125B637335750B12 /* TKInspection.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = TKInspection.mm; sourceTree = "<group>"; };
+		B27FAE956532C43C237048C2 /* LegalDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocument.swift; sourceTree = "<group>"; };
 		B4DAD986481CC1D69B23B379 /* PieceMapFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PieceMapFeed.swift; sourceTree = "<group>"; };
 		B7DE8E7075F7C606961E5BF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B9DEF89A1F665F569FF2FDEE /* tesseractl */ = {isa = PBXFileReference; includeInIndex = 0; path = tesseractl; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -441,6 +456,7 @@
 				9F1CEB96292193A1BD600716 /* TorrentBackend.swift */,
 				4FEBF5AD0EC50C6AAA2E07EC /* TorrentRow.swift */,
 				9780AA0E642EDA1326DCCC13 /* TorrentStore.swift */,
+				9CCDFF742BDFE7C9BED12104 /* Legal */,
 				920507C72D96DDF088251722 /* Remote */,
 			);
 			path = Shared;
@@ -544,6 +560,18 @@
 				93D7B91B6D2691E3C6972DB4 /* RemoteControlTests.swift */,
 			);
 			path = RemoteTests;
+			sourceTree = "<group>";
+		};
+		9CCDFF742BDFE7C9BED12104 /* Legal */ = {
+			isa = PBXGroup;
+			children = (
+				A04BD2D53CC159484B6061E6 /* acknowledgements.html */,
+				7C72C6099CB1BD41D5618EEC /* legal.css */,
+				B27FAE956532C43C237048C2 /* LegalDocument.swift */,
+				9C73A3AF9DEF432B5C50AB88 /* privacy.html */,
+				688840048FB03A5891283759 /* terms.html */,
+			);
+			path = Legal;
 			sourceTree = "<group>";
 		};
 		A722332B58F7EA10E8178269 = {
@@ -919,6 +947,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				88BD55EB473F659FE326FF17 /* Assets.xcassets in Resources */,
+				AE4F59444B573447D23AFD43 /* acknowledgements.html in Resources */,
+				179C39419B12DE9B469E6ED1 /* legal.css in Resources */,
+				C49FECB228F2BF82B253B659 /* privacy.html in Resources */,
+				8CF5ADD36A93277F415E78EB /* terms.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -927,6 +959,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				0E2F27C0CEBA24E48306FE2A /* Assets.xcassets in Resources */,
+				028626096F6D5FCDCBB93E5E /* acknowledgements.html in Resources */,
+				3AB1667D7919D565465FB956 /* legal.css in Resources */,
+				A008429827DC5AFF2A29502F /* privacy.html in Resources */,
+				1EE8587B71B70B9037873EB8 /* terms.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -983,6 +1019,7 @@
 				43EA55FF230CC420D78E4468 /* IOSContentView.swift in Sources */,
 				D4803E76A080120388B8C311 /* IOSSettingsView.swift in Sources */,
 				555ADAAE35DB7DB6177D1AF9 /* Inbox.swift in Sources */,
+				A1D701C5C2DED32F853640C4 /* LegalDocument.swift in Sources */,
 				F5CE37E8A4D363C860C68BB4 /* LiveActivityController.swift in Sources */,
 				3815978507170917F643C51D /* PairMacSheet.swift in Sources */,
 				2C128122C88F4A10B5309947 /* PairedPeers.swift in Sources */,
@@ -1033,6 +1070,7 @@
 				AB41F48F6C82569F2A941D23 /* FileList.swift in Sources */,
 				EF77440227E1385C2AB38C12 /* Formatting.swift in Sources */,
 				642C8DDEB23F0F8F02E73445 /* InspectorView.swift in Sources */,
+				DFDE15B047E48298E02A9642 /* LegalDocument.swift in Sources */,
 				F5366B646AB02BBDBC257736 /* MainWindow.swift in Sources */,
 				6E13BB64D7A5A82684E388C2 /* MenuBarContent.swift in Sources */,
 				FD1152F574537EC1009C8640 /* PairedPeers.swift in Sources */,

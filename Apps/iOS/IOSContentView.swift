@@ -11,6 +11,7 @@ struct IOSContentView: View {
     @State private var importing = false
     @State private var addingMagnet = false
     @State private var showingSettings = false
+    @State private var debugLegal: LegalDocument?
     @State private var showingDemo = false
     @State private var removal: TorrentStatus?
     @State private var browser = RemoteBrowser()
@@ -51,6 +52,9 @@ struct IOSContentView: View {
         }
         .sheet(isPresented: $showingSettings) {
             IOSSettingsView(store: store)
+        }
+        .sheet(item: $debugLegal) { document in
+            NavigationStack { LegalDocumentView(document: document).navigationBarTitleDisplayMode(.inline) }
         }
         .sheet(isPresented: $showingDemo) {
             NavigationStack { PieceMapDemoView() }
@@ -106,6 +110,9 @@ struct IOSContentView: View {
             #if DEBUG
             if let id = store.addFromLaunchArguments() { selection = id }
             if UserDefaults.standard.bool(forKey: "openDemo") { showingDemo = true }
+            // Debug launch options for screenshots: -openSettings YES, -openLegal privacy|terms|acknowledgements
+            if UserDefaults.standard.bool(forKey: "openSettings") { showingSettings = true }
+            if let name = UserDefaults.standard.string(forKey: "openLegal") { debugLegal = LegalDocument(rawValue: name) }
             #endif
         }
     }
