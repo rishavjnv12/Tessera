@@ -7,6 +7,10 @@ public struct PieceMapCard: View {
     public var highlightedRanges: [ClosedRange<Int>]
     public var fitHeight: CGFloat
     public var onSetPriority: ((ClosedRange<Int>, PiecePriority) -> Void)?
+    /// Names what `highlightedRanges` outline, e.g. a file. With `onClearHighlight`, a bar under
+    /// the map shows it with a button that removes the outline.
+    public var highlightTitle: String?
+    public var onClearHighlight: (() -> Void)?
 
     @State private var mode: PieceMapMode = .progress
     @State private var zoom: CGFloat = 1
@@ -15,12 +19,15 @@ public struct PieceMapCard: View {
 
     public init(
         map: PieceMap, highlightedRanges: [ClosedRange<Int>] = [], fitHeight: CGFloat = 160,
-        onSetPriority: ((ClosedRange<Int>, PiecePriority) -> Void)? = nil
+        onSetPriority: ((ClosedRange<Int>, PiecePriority) -> Void)? = nil,
+        highlightTitle: String? = nil, onClearHighlight: (() -> Void)? = nil
     ) {
         self.map = map
         self.highlightedRanges = highlightedRanges
         self.fitHeight = fitHeight
         self.onSetPriority = onSetPriority
+        self.highlightTitle = highlightTitle
+        self.onClearHighlight = onClearHighlight
     }
 
     public var body: some View {
@@ -40,6 +47,9 @@ public struct PieceMapCard: View {
                     selection: onSetPriority == nil ? nil : $selection
                 )
                 footer
+                if let highlightTitle, let onClearHighlight, !highlightedRanges.isEmpty {
+                    highlightBar(highlightTitle, onClear: onClearHighlight)
+                }
                 if let selection, onSetPriority != nil {
                     selectionBar(selection)
                 }
@@ -69,6 +79,38 @@ public struct PieceMapCard: View {
             }
             .fixedSize()
             Button("Clear Selection", systemImage: "xmark.circle.fill") { selection = nil }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+        }
+        .padding(10)
+        .background(.background.secondary, in: .rect(cornerRadius: 10, style: .continuous))
+    }
+
+    private func highlightBar(_ title: String, onClear: @escaping () -> Void) -> some View {
+        let ranges = highlightedRanges
+        let detail: String = if ranges.count == 1, let range = ranges.first {
+            range.count == 1
+                ? String(localized: "Piece \(range.lowerBound.formatted())")
+                : String(localized: "Pieces \(range.lowerBound.formatted())–\(range.upperBound.formatted())")
+        } else {
+            String(localized: "\(ranges.reduce(0) { $0 + $1.count }.formatted()) pieces")
+        }
+        return HStack(spacing: 10) {
+            Image(systemName: "highlighter")
+                .foregroundStyle(.tint)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                Text(detail)
+                    .foregroundStyle(.secondary)
+            }
+            .font(.caption)
+            .monospacedDigit()
+            Spacer(minLength: 8)
+            Button("Stop Highlighting", systemImage: "xmark.circle.fill", action: onClear)
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)

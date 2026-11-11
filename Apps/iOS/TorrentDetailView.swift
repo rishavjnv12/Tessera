@@ -22,54 +22,69 @@ struct TorrentDetailView: View {
     var torrentID: String
 
     @State private var feed = PieceMapFeed()
-    @State private var selectedFiles: Set<Int> = []
+    /// File whose pieces are outlined on the map, chosen from the file's context menu.
+    @State private var highlightedFile: Int?
+    /// Highlighting a file scrolls the map into view only when it is off screen.
+    @State private var isMapVisible = true
     @State private var confirmingRemoval = false
     @State private var previewURL: URL?
     @AppStorage("detailSection") private var section: DetailSection = .files
 
     private var status: TorrentStatus? { store.status(of: torrentID) }
 
+    private static let mapID = "pieceMap"
+
     var body: some View {
-        ScrollView {
-            if let status {
-                VStack(alignment: .leading, spacing: 20) {
-                    TorrentHeader(torrent: status)
-                    if let file = feed.files.first(where: { $0.index == status.fileDownloadingFromStart }) {
-                        FromStartBanner(file: file, onOpen: store.isRemote ? nil : { previewURL = file.url(in: status.savePath) }) {
-                            perform { try $0.stopDownloadingFromStart(torrent: torrentID) }
+        ScrollViewReader { proxy in
+            ScrollView {
+                if let status {
+                    VStack(alignment: .leading, spacing: 20) {
+                        TorrentHeader(torrent: status)
+                        if let file = feed.files.first(where: { $0.index == status.fileDownloadingFromStart }) {
+                            FromStartBanner(file: file, onOpen: store.isRemote ? nil : { previewURL = file.url(in: status.savePath) }) {
+                                perform { try $0.stopDownloadingFromStart(torrent: torrentID) }
+                            }
+                        }
+                        PieceMapCard(
+                            map: feed.map, highlightedRanges: highlightedRanges,
+                            onSetPriority: canChangePriority(status) ? { range, priority in setPriority(priority, pieces: range) } : nil,
+                            highlightTitle: feed.files.first { $0.index == highlightedFile }?.name,
+                            onClearHighlight: { highlightedFile = nil }
+                        )
+                        .id(Self.mapID)
+                        .onScrollVisibilityChange(threshold: 0.5) { isMapVisible = $0 }
+                        Picker("Show", selection: $section) {
+                            ForEach(DetailSection.allCases) { Text($0.title).tag($0) }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        switch section {
+                        case .files:
+                            FileList(
+                                files: feed.files, savePath: status.savePath, highlighted: $highlightedFile,
+                                onSetPriority: canChangePriority(status) ? { files, priority in setPriority(priority, files: files) } : nil,
+                                onDownloadFromStart: canChangePriority(status) ? { index in
+                                    perform { try $0.downloadFromStart(file: index, torrent: torrentID) }
+                                } : nil,
+                                onStopDownloadingFromStart: { perform { try $0.stopDownloadingFromStart(torrent: torrentID) } },
+                                onOpen: store.isRemote ? nil : { previewURL = $0 }
+                            )
+                        case .peers:
+                            PeersSection(store: store, torrentID: torrentID)
+                        case .trackers:
+                            TrackersSection(store: store, torrent: status)
+                        case .info:
+                            InfoSection(store: store, torrent: status)
                         }
                     }
-                    PieceMapCard(
-                        map: feed.map, highlightedRanges: highlightedRanges,
-                        onSetPriority: canChangePriority(status) ? { range, priority in setPriority(priority, pieces: range) } : nil
-                    )
-                    Picker("Show", selection: $section) {
-                        ForEach(DetailSection.allCases) { Text($0.title).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    switch section {
-                    case .files:
-                        FileList(
-                            files: feed.files, savePath: status.savePath, selection: $selectedFiles,
-                            onSetPriority: canChangePriority(status) ? { files, priority in setPriority(priority, files: files) } : nil,
-                            onDownloadFromStart: canChangePriority(status) ? { index in
-                                perform { try $0.downloadFromStart(file: index, torrent: torrentID) }
-                            } : nil,
-                            onStopDownloadingFromStart: { perform { try $0.stopDownloadingFromStart(torrent: torrentID) } },
-                            onOpen: store.isRemote ? nil : { previewURL = $0 }
-                        )
-                    case .peers:
-                        PeersSection(store: store, torrentID: torrentID)
-                    case .trackers:
-                        TrackersSection(store: store, torrent: status)
-                    case .info:
-                        InfoSection(store: store, torrent: status)
-                    }
+                    .padding(20)
+                    .frame(maxWidth: 900, alignment: .leading)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(20)
-                .frame(maxWidth: 900, alignment: .leading)
-                .frame(maxWidth: .infinity)
+            }
+            .onChange(of: highlightedFile) { _, file in
+                guard file != nil, !isMapVisible else { return }
+                withAnimation { proxy.scrollTo(Self.mapID, anchor: .center) }
             }
         }
         .overlay {
@@ -82,7 +97,7 @@ struct TorrentDetailView: View {
         .toolbar { toolbarContent }
         .task(id: torrentID) {
             guard let backend = store.backend else { return }
-            selectedFiles = []
+            highlightedFile = nil
             await feed.run(backend: backend, torrentID: torrentID)
         }
         .quickLookPreview($previewURL)
@@ -95,7 +110,8 @@ struct TorrentDetailView: View {
     }
 
     private var highlightedRanges: [ClosedRange<Int>] {
-        feed.map.files.filter { selectedFiles.contains($0.id) }.compactMap(\.pieces)
+        guard let pieces = feed.map.files.first(where: { $0.id == highlightedFile })?.pieces else { return [] }
+        return [pieces]
     }
 
     /// libtorrent ignores priority changes once every piece is downloaded.
@@ -155,52 +171,172 @@ struct TorrentDetailView: View {
     }
 }
 
+/// Name, state and progress, then the live numbers as tiles.
 struct TorrentHeader: View {
     var torrent: TorrentStatus
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 16) {
             Text(torrent.name)
                 .font(.title2.weight(.semibold))
-                .lineLimit(2)
+                .lineLimit(4)
                 .textSelection(.enabled)
-            ProgressView(value: torrent.progress)
-                .tint(torrent.isPaused || torrent.isQueued ? .secondary : .accentColor)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    statePill
+                    Spacer(minLength: 8)
+                    Text(Format.percent(torrent.progress))
+                        .font(.system(.title2, design: .rounded, weight: .semibold))
+                        .monospacedDigit()
+                }
+                ProgressView(value: torrent.progress)
+                    .tint(stateStyle.color)
+                amountAndTime
+            }
+            if let error = torrent.errorMessage {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .textSelection(.enabled)
+            }
+            stats
+        }
+    }
+
+    // MARK: State
+
+    private var statePill: some View {
+        Label(torrent.errorMessage == nil ? Format.state(torrent) : String(localized: "Error"), systemImage: stateStyle.symbol)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(stateStyle.color)
+            .lineLimit(1)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(stateStyle.color.opacity(0.15), in: .capsule)
+    }
+
+    private var stateStyle: (symbol: String, color: Color) {
+        if torrent.errorMessage != nil { return ("exclamationmark.triangle.fill", .red) }
+        if torrent.isPaused { return ("pause.fill", .secondary) }
+        if torrent.isQueued { return ("clock", .secondary) }
+        return switch torrent.state {
+        case .checkingResumeData, .checkingFiles: ("arrow.triangle.2.circlepath", .orange)
+        case .downloadingMetadata: ("magnifyingglass", .accentColor)
+        case .downloading: ("arrow.down", .accentColor)
+        case .finished: ("checkmark", .green)
+        case .seeding: ("arrow.up", .green)
+        @unknown default: ("questionmark", .secondary)
+        }
+    }
+
+    // MARK: Progress
+
+    /// "1.57 GB of 2.14 GB" and "1 hr, 27 min left", side by side when they fit.
+    @ViewBuilder
+    private var amountAndTime: some View {
+        let amount = amountText
+        let time = timeText
+        if amount != nil || time != nil {
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: 14) { details; Spacer(); speeds }
-                VStack(alignment: .leading, spacing: 4) { details; speeds }
+                HStack(spacing: 12) {
+                    amount
+                    Spacer(minLength: 0)
+                    time
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    amount
+                    time
+                }
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .monospacedDigit()
+            .lineLimit(1)
         }
     }
 
-    private var details: some View {
-        HStack(spacing: 6) {
-            Text(Format.state(torrent))
-            Text("·")
-            Text(Format.percent(torrent.progress))
-            if torrent.hasMetadata {
-                Text("·")
-                Text("\(Format.bytes(torrent.totalWantedDone)) of \(Format.bytes(torrent.totalWanted))")
-            }
-            if let eta = Format.eta(torrent.eta) {
-                Text("·")
-                Text("\(eta) left")
-            }
-        }
-        .lineLimit(1)
+    private var amountText: Text? {
+        guard torrent.hasMetadata else { return nil }
+        if torrent.totalWantedDone >= torrent.totalWanted { return Text(Format.bytes(torrent.totalWanted)) }
+        return Text("\(Format.bytes(torrent.totalWantedDone)) of \(Format.bytes(torrent.totalWanted))")
     }
 
-    private var speeds: some View {
-        HStack(spacing: 12) {
-            Label(Format.rate(torrent.downloadRate), systemImage: "arrow.down")
-            Label(Format.rate(torrent.uploadRate), systemImage: "arrow.up")
-            Label("\(torrent.connectedPeers)", systemImage: "person.2")
+    private var timeText: Text? {
+        if let eta = Format.eta(torrent.eta) { return Text("\(eta) left") }
+        if torrent.progress >= 1, let completed = torrent.completedDate {
+            return Text("Completed \(completed, format: .relative(presentation: .named))")
         }
-        .labelStyle(CompactLabelStyle())
+        return nil
+    }
+
+    // MARK: Stats
+
+    private var stats: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        return layout {
+            StatTile(title: "Download", systemImage: "arrow.down", tint: .blue, value: Text(rate(torrent.downloadRate))) {
+                Text("\(Format.bytes(torrent.totalDownloaded)) total")
+            }
+            StatTile(title: "Upload", systemImage: "arrow.up", tint: .green, value: Text(rate(torrent.uploadRate))) {
+                Text("Ratio \(torrent.ratio.formatted(.number.precision(.fractionLength(2))))")
+            }
+            StatTile(title: "Peers", systemImage: "person.2.fill", tint: .orange, value: Text(torrent.connectedPeers.formatted())) {
+                Text("^[\(torrent.connectedSeeds) seed](inflect: true)")
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// "114 kB/s" with the unit smaller than the number.
+    private func rate(_ bytesPerSecond: Int64) -> AttributedString {
+        let unitFont = Font.system(.subheadline, design: .rounded, weight: .semibold)
+        var text = bytesPerSecond.formatted(.byteCount(style: .file, spellsOutZero: false).attributed)
+        let unitRanges = text.runs.compactMap { run -> Range<AttributedString.Index>? in
+            if case .unit? = run.byteCount { run.range } else { nil }
+        }
+        for range in unitRanges { text[range].font = unitFont }
+        var perSecond = AttributedString("/s")
+        perSecond.font = unitFont
+        return text + perSecond
+    }
+}
+
+/// One live number: a caption with a tinted symbol, the value, and a detail line.
+private struct StatTile<Detail: View>: View {
+    var title: LocalizedStringKey
+    var systemImage: String
+    var tint: Color
+    var value: Text
+    @ViewBuilder var detail: Detail
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 4) {
+                Image(systemName: systemImage)
+                    .foregroundStyle(tint)
+                    .imageScale(.small)
+                Text(title)
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
+            value
+                .font(.system(.title3, design: .rounded, weight: .semibold))
+                .monospacedDigit()
+            detail
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        }
         .lineLimit(1)
+        .minimumScaleFactor(0.7)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.fill.quinary, in: .rect(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -417,8 +553,14 @@ private struct InfoSection: View {
 
 /// Opens the Files app at a location inside the app's Documents folder.
 enum FilesApp {
+    /// Opens the folder that holds `url`.
     static func open(_ url: URL) {
-        var components = URLComponents(url: url.deletingLastPathComponent(), resolvingAgainstBaseURL: false)
+        let folder = url.deletingLastPathComponent()
+        // Files matches the path literally and ignores links through a symlink. On iPhone the app's
+        // folder is really /private/var/mobile/…, but most URLs (and resolvingSymlinksInPath) say
+        // /var/mobile/…, so pass the canonical path.
+        let path = (try? folder.resourceValues(forKeys: [.canonicalPathKey]))?.canonicalPath ?? folder.path
+        var components = URLComponents(url: URL(filePath: path, directoryHint: .isDirectory), resolvingAgainstBaseURL: false)
         components?.scheme = "shareddocuments"
         if let target = components?.url { UIApplication.shared.open(target) }
     }
