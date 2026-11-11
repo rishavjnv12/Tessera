@@ -553,8 +553,14 @@ private struct InfoSection: View {
 
 /// Opens the Files app at a location inside the app's Documents folder.
 enum FilesApp {
+    /// Opens the folder that holds `url`.
     static func open(_ url: URL) {
-        var components = URLComponents(url: url.deletingLastPathComponent(), resolvingAgainstBaseURL: false)
+        let folder = url.deletingLastPathComponent()
+        // Files matches the path literally and ignores links through a symlink. On iPhone the app's
+        // folder is really /private/var/mobile/…, but most URLs (and resolvingSymlinksInPath) say
+        // /var/mobile/…, so pass the canonical path.
+        let path = (try? folder.resourceValues(forKeys: [.canonicalPathKey]))?.canonicalPath ?? folder.path
+        var components = URLComponents(url: URL(filePath: path, directoryHint: .isDirectory), resolvingAgainstBaseURL: false)
         components?.scheme = "shareddocuments"
         if let target = components?.url { UIApplication.shared.open(target) }
     }
