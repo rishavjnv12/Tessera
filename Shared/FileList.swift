@@ -1,6 +1,7 @@
 import SwiftUI
 import TesseraKit
 import TesseraUI
+import UniformTypeIdentifiers
 
 extension TorrentFile {
     /// Bytes from the start needed before offering to open a file that is still downloading.
@@ -23,12 +24,17 @@ extension TorrentFile {
     }
 }
 
-/// Files with their piece ranges and priorities. Selecting files outlines their pieces on
-/// the map; their priority can then be changed together.
+/// Files with their piece ranges and priorities.
+///
+/// With `selection` (Mac), clicking rows selects files: their pieces are outlined on the map and
+/// their priority can be changed together. Without it (iPhone), tapping a row opens its file and
+/// the row's context menu outlines its pieces through `highlighted`.
 struct FileList: View {
     var files: [TorrentFile]
     var savePath: String
-    @Binding var selection: Set<Int>
+    var selection: Binding<Set<Int>>?
+    /// The file whose pieces are outlined on the map. nil leaves "Highlight Pieces" out of the menus.
+    var highlighted: Binding<Int?>?
     /// nil when priorities cannot change, e.g. once the torrent is complete.
     var onSetPriority: ((Set<Int>, PiecePriority) -> Void)?
     var onDownloadFromStart: ((Int) -> Void)?
@@ -36,13 +42,15 @@ struct FileList: View {
     /// nil when the files are not on this device (a remote Mac).
     var onOpen: ((URL) -> Void)?
 
+    private var selected: Set<Int> { selection?.wrappedValue ?? [] }
+
     private var selectedPriority: PiecePriority? {
-        PiecePriority.common(files.filter { selection.contains($0.index) }.map { PiecePriority(level: $0.priority) })
+        PiecePriority.common(files.filter { selected.contains($0.index) }.map { PiecePriority(level: $0.priority) })
     }
 
     /// The one selected file, when it can be downloaded from its start.
     private var singleIncompleteSelection: TorrentFile? {
-        guard selection.count == 1, let file = files.first(where: { selection.contains($0.index) }),
+        guard selected.count == 1, let file = files.first(where: { selected.contains($0.index) }),
               file.progress < 1, !file.downloadsFromStart else { return nil }
         return file
     }
@@ -52,25 +60,13 @@ struct FileList: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Text("Files").font(.headline)
-                    Text(selection.isEmpty ? "\(files.count)" : "\(selection.count) of \(files.count) selected")
+                    Text(selected.isEmpty ? "\(files.count)" : "\(selected.count) of \(files.count) selected")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
                     Spacer()
-                    if !selection.isEmpty {
-                        if let onDownloadFromStart, let file = singleIncompleteSelection {
-                            Button("Download from Start", systemImage: "play.circle") { onDownloadFromStart(file.index) }
-                                .help("Download this file first, in order, so it can be opened early")
-                        }
-                        if let onSetPriority {
-                            PriorityMenu(current: selectedPriority) { onSetPriority(selection, $0) }
-                                .fixedSize()
-                        }
-                        Button("Clear") { selection = [] }
-                            .buttonStyle(.borderless)
-                    } else if files.count > 1 {
-                        Button("Select All") { selection = Set(files.map(\.index)) }
-                            .buttonStyle(.borderless)
+                    if let selection {
+                        selectionControls(selection)
                     }
                 }
                 LazyVStack(spacing: 2) {
@@ -79,20 +75,49 @@ struct FileList: View {
                             name: file.name, path: file.path, size: file.size, progress: file.progress,
                             pieces: file.firstPiece >= 0 ? file.firstPiece...file.lastPiece : nil,
                             priority: PiecePriority(level: file.priority),
-                            isSelected: selection.contains(file.index),
+                            isSelected: selected.contains(file.index),
+                            isHighlighted: highlighted?.wrappedValue == file.index,
                             readiness: file.downloadsFromStart ? .init(readyFraction: file.readyFraction, hasEnd: file.hasEnd) : nil,
                             onOpen: file.canOpen && file.downloadsFromStart ? onOpen.map { open in { open(file.url(in: savePath)) } } : nil,
                             actions: actions(for: file),
                             onSetPriority: onSetPriority.map { set in
-                                { priority in set(selection.contains(file.index) ? selection : [file.index], priority) }
-                            }
-                        ) {
-                            if selection.contains(file.index) { selection.remove(file.index) } else { selection.insert(file.index) }
-                        }
+                                { priority in set(selected.contains(file.index) ? selected : [file.index], priority) }
+                            },
+                            action: rowAction(for: file)
+                        )
                     }
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func selectionControls(_ selection: Binding<Set<Int>>) -> some View {
+        if !selected.isEmpty {
+            if let onDownloadFromStart, let file = singleIncompleteSelection {
+                Button("Download from Start", systemImage: "play.circle") { onDownloadFromStart(file.index) }
+                    .help("Download this file first, in order, so it can be opened early")
+            }
+            if let onSetPriority {
+                PriorityMenu(current: selectedPriority) { onSetPriority(selected, $0) }
+                    .fixedSize()
+            }
+            Button("Clear") { selection.wrappedValue = [] }
+                .buttonStyle(.borderless)
+        } else if files.count > 1 {
+            Button("Select All") { selection.wrappedValue = Set(files.map(\.index)) }
+                .buttonStyle(.borderless)
+        }
+    }
+
+    /// Selects the file when rows are selectable, otherwise opens it. nil when tapping does nothing.
+    private func rowAction(for file: TorrentFile) -> (() -> Void)? {
+        if let selection {
+            return { selection.wrappedValue.formSymmetricDifference([file.index]) }
+        }
+        guard file.canOpen, let onOpen else { return nil }
+        let url = file.url(in: savePath)
+        return { onOpen(url) }
     }
 
     private func actions(for file: TorrentFile) -> [MenuAction] {
@@ -111,6 +136,17 @@ struct FileList: View {
             })
             #endif
         }
+        if let highlighted, file.firstPiece >= 0 {
+            if highlighted.wrappedValue == file.index {
+                actions.append(MenuAction(String(localized: "Stop Highlighting"), systemImage: "xmark.circle") {
+                    highlighted.wrappedValue = nil
+                })
+            } else {
+                actions.append(MenuAction(String(localized: "Highlight Pieces"), systemImage: "highlighter") {
+                    highlighted.wrappedValue = file.index
+                })
+            }
+        }
         return actions
     }
 }
@@ -127,55 +163,25 @@ struct FileListRow: View {
     var progress: Double
     var pieces: ClosedRange<Int>?
     var priority: PiecePriority = .normal
-    var isSelected: Bool
+    var isSelected = false
+    /// Its pieces are outlined on the map.
+    var isHighlighted = false
     /// Shown while the file downloads from its start.
     var readiness: Readiness?
     var onOpen: (() -> Void)?
     var actions: [MenuAction] = []
     var onSetPriority: ((PiecePriority) -> Void)?
-    var action: () -> Void
+    /// Runs when the row is tapped. nil when tapping does nothing.
+    var action: (() -> Void)?
 
     var body: some View {
         HStack(spacing: 8) {
-            Button(action: action) {
-                HStack(spacing: 10) {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : icon)
-                        .foregroundStyle(isSelected || progress >= 1 || readiness != nil ? Color.accentColor : .secondary)
-                        .frame(width: 18)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(name)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .strikethrough(priority == .skip, color: .secondary)
-                        if let readiness {
-                            ReadinessBar(ready: readiness.readyFraction, downloaded: progress)
-                            Text(readinessText(readiness))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                        } else {
-                            Text(detail)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                        }
-                    }
-                    Spacer(minLength: 8)
-                    if readiness != nil {
-                        Badge(title: String(localized: "From Start"), systemImage: "play.circle", color: .accentColor)
-                    } else if priority != .normal {
-                        PriorityBadge(priority: priority)
-                    }
-                    Text(Format.percent(progress))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                        .frame(minWidth: 40, alignment: .trailing)
-                }
-                .opacity(priority == .skip ? 0.6 : 1)
-                .contentShape(Rectangle())
+            if let action {
+                Button(action: action) { content }
+                    .buttonStyle(.plain)
+            } else {
+                content
             }
-            .buttonStyle(.plain)
             if let onOpen {
                 Button("Open", action: onOpen)
                     .buttonStyle(.borderedProminent)
@@ -185,7 +191,7 @@ struct FileListRow: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
-        .background(isSelected ? Color.accentColor.opacity(0.14) : .clear, in: .rect(cornerRadius: 8, style: .continuous))
+        .background(background)
         .help(path)
         .fileContextMenu(actions: actions, current: priority, onSetPriority: onSetPriority)
         .accessibilityElement(children: .combine)
@@ -193,8 +199,55 @@ struct FileListRow: View {
         .accessibilityValue(priority == .normal ? "" : priority.title)
     }
 
-    private var icon: String {
-        progress >= 1 ? "checkmark.circle" : "doc"
+    /// Selected rows are tinted; a highlighted row is outlined like its pieces on the map.
+    @ViewBuilder
+    private var background: some View {
+        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+        if isHighlighted {
+            shape.fill(Color.accentColor.opacity(0.12))
+                .overlay(shape.strokeBorder(Color.accentColor, lineWidth: 1.5))
+        } else if isSelected {
+            shape.fill(Color.accentColor.opacity(0.14))
+        }
+    }
+
+    private var content: some View {
+        HStack(spacing: 10) {
+            Image(systemName: isSelected ? "checkmark.circle.fill" : FileKind.symbol(for: name))
+                .foregroundStyle(isSelected || isHighlighted || progress >= 1 || readiness != nil ? Color.accentColor : .secondary)
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(name)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .strikethrough(priority == .skip, color: .secondary)
+                if let readiness {
+                    ReadinessBar(ready: readiness.readyFraction, downloaded: progress)
+                    Text(readinessText(readiness))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                } else {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+            }
+            Spacer(minLength: 8)
+            if readiness != nil {
+                Badge(title: String(localized: "From Start"), systemImage: "play.circle", color: .accentColor)
+            } else if priority != .normal {
+                PriorityBadge(priority: priority)
+            }
+            Text(Format.percent(progress))
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .frame(minWidth: 40, alignment: .trailing)
+        }
+        .opacity(priority == .skip ? 0.6 : 1)
+        .contentShape(Rectangle())
     }
 
     private var detail: String {
@@ -211,6 +264,26 @@ struct FileListRow: View {
         let ready = String(localized: "Ready to \(Format.percent(readiness.readyFraction)) from the start")
         let end = readiness.hasEnd ? String(localized: "end downloaded") : String(localized: "getting the end")
         return "\(ready) · \(end)"
+    }
+}
+
+/// SF Symbol for a file, from its extension.
+enum FileKind {
+    /// Common torrent formats the system may not declare a type for.
+    private static let subtitles: Set<String> = ["srt", "vtt", "ass", "ssa", "sub", "idx"]
+    private static let videos: Set<String> = ["mkv", "webm", "avi", "wmv", "flv", "m2ts", "ts"]
+
+    static func symbol(for name: String) -> String {
+        let ext = (name as NSString).pathExtension.lowercased()
+        if subtitles.contains(ext) { return "captions.bubble" }
+        if videos.contains(ext) { return "film" }
+        guard let type = UTType(filenameExtension: ext) else { return "doc" }
+        if type.conforms(to: .movie) { return "film" }
+        if type.conforms(to: .audio) { return "waveform" }
+        if type.conforms(to: .image) { return "photo" }
+        if type.conforms(to: .archive) || type.conforms(to: .diskImage) { return "doc.zipper" }
+        if type.conforms(to: .text) || type.conforms(to: .pdf) { return "doc.text" }
+        return "doc"
     }
 }
 
